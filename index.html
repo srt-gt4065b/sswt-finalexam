@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Statistics Challenge 2025 – Exam</title>
+    <title>Statistics Challenge 2025 – Exam (MCQ Version)</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* Fade-in animation */
         .animate-fadeIn {
             animation: fadeIn .4s ease-out;
         }
@@ -18,18 +17,17 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Disable text copying */
+        /* Disable text selection / copy */
         * {
             user-select: none !important;
             -webkit-user-select: none !important;
-            -moz-user-select: none !important;
         }
     </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen">
 
-<!-- BLOCK COPY & RIGHT CLICK -->
+<!-- COPY / RIGHT-CLICK BLOCK -->
 <script>
 document.addEventListener("contextmenu", e => e.preventDefault());
 document.addEventListener("keydown", e => {
@@ -39,56 +37,104 @@ document.addEventListener("keydown", e => {
 });
 </script>
 
+
 <!-- ============================= -->
-<!-- 📘 PRE-EXAM INSTRUCTION MODAL -->
+<!-- LOGIN SCREEN → NEXT: instructions -->
+<!-- ============================= -->
+<div id="loginScreen" class="min-h-screen flex items-center justify-center p-6">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full animate-fadeIn">
+
+        <h1 class="text-4xl text-center font-bold text-purple-600 mb-2">Statistics Challenge</h1>
+        <p class="text-center text-gray-600 mb-8">Final Examination 2025</p>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Name</label>
+                <input id="studentName" class="w-full px-4 py-3 border rounded-lg">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-1">Student ID</label>
+                <input id="studentId" class="w-full px-4 py-3 border rounded-lg">
+            </div>
+
+            <button onclick="showInstructions()"
+                class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg text-lg">
+                Continue
+            </button>
+        </div>
+
+        <p class="text-xs text-center mt-4 text-gray-500">
+            Instructions will appear before the exam begins.
+        </p>
+    </div>
+</div>
+
+
+<!-- ============================= -->
+<!-- INSTRUCTION MODAL (after login) -->
 <!-- ============================= -->
 <div id="instructionModal"
-     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-6 z-50">
+     class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-6 z-50">
     <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 animate-fadeIn">
 
         <h2 class="text-3xl font-bold text-purple-600 mb-4 text-center">
             📘 Statistics Challenge 2025 – Instructions
         </h2>
 
-        <p class="text-gray-700 leading-relaxed mb-4">
-            Before starting the exam, please read and understand the rules below.
+        <p class="text-gray-700 mb-4">
+            Please read the instructions carefully before starting the exam.
         </p>
 
-        <div class="border-l-4 border-purple-400 bg-purple-50 p-4 rounded-lg mb-6">
-            <ul class="list-disc ml-5 text-gray-700 space-y-1 text-sm">
-                <li>100 concept questions</li>
-                <li>20 seconds per question</li>
-                <li>Total time: 33 minutes 20 seconds (2000 seconds)</li>
-                <li>One attempt only – No retakes</li>
-                <li>Exam available: Dec 5 9:00 AM → Dec 9 9:00 PM</li>
-                <li>Questions auto-advance, no backward navigation</li>
-                <li>Question order is randomized for each student</li>
-            </ul>
-        </div>
+        <ul class="border-l-4 border-purple-400 bg-purple-50 p-4 rounded mb-6 list-disc ml-6 text-sm text-gray-700">
+            <li>100 multiple-choice concept questions</li>
+            <li>20 seconds per question</li>
+            <li>Total exam time: 33 minutes 20 seconds (2000 seconds)</li>
+            <li>No retakes – only one attempt per student</li>
+            <li>Exam available Dec 5 9:00 AM → Dec 9 9:00 PM</li>
+            <li>Questions auto-advance (no navigation buttons)</li>
+            <li>Questions appear in a unique random order for each student</li>
+        </ul>
 
         <div class="flex items-center gap-2 mb-6">
-            <input id="agreeCheck" type="checkbox" class="w-5 h-5 text-purple-600">
-            <label for="agreeCheck" class="text-gray-800 text-sm font-medium">
+            <input id="agreeCheck" type="checkbox" class="w-5 h-5">
+            <label for="agreeCheck" class="text-gray-800 text-sm">
                 I have read and fully understand the exam instructions.
             </label>
         </div>
 
         <div class="text-center">
-            <button id="closeInstructionBtn"
+            <button id="startExamBtn"
                     disabled
-                    class="bg-gray-400 cursor-not-allowed text-white font-bold px-8 py-3 rounded-xl transition duration-200">
-                Continue
+                    class="bg-gray-400 cursor-not-allowed text-white font-bold px-8 py-3 rounded-xl transition">
+                Start Exam
             </button>
         </div>
     </div>
 </div>
 
 <script>
+// LOGIN → SHOW INSTRUCTIONS
+function showInstructions() {
+    const name = document.getElementById("studentName").value.trim();
+    const id = document.getElementById("studentId").value.trim();
+
+    if (!name || !id) {
+        alert("Please enter your name and student ID.");
+        return;
+    }
+
+    document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("instructionModal").classList.remove("hidden");
+}
+
+// ENABLE BUTTON IF CHECKED
 document.getElementById("agreeCheck").addEventListener("change", () => {
-    const btn = document.getElementById("closeInstructionBtn");
+    const btn = document.getElementById("startExamBtn");
     if (agreeCheck.checked) {
         btn.disabled = false;
-        btn.classList.remove("bg-gray-400", "cursor-not-allowed");
+        btn.classList.remove("bg-gray-400");
+        btn.classList.remove("cursor-not-allowed");
         btn.classList.add("bg-purple-600", "hover:bg-purple-700");
     } else {
         btn.disabled = true;
@@ -96,46 +142,7 @@ document.getElementById("agreeCheck").addEventListener("change", () => {
         btn.classList.remove("bg-purple-600", "hover:bg-purple-700");
     }
 });
-
-document.getElementById("closeInstructionBtn").addEventListener("click", () => {
-    document.getElementById("instructionModal").classList.add("hidden");
-});
 </script>
-
-<!-- ============================= -->
-<!-- LOGIN SCREEN -->
-<!-- ============================= -->
-<div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full animate-fadeIn">
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold mb-2 text-purple-600">Statistics Challenge</h1>
-            <p class="text-gray-600">Final Examination 2025</p>
-        </div>
-
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
-                <input type="text" id="studentName"
-                       class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Student ID</label>
-                <input type="text" id="studentId"
-                       class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500">
-            </div>
-
-            <button onclick="startExam()"
-                    class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg text-lg">
-                Start Exam
-            </button>
-        </div>
-
-        <p class="text-xs text-center mt-4 text-gray-500">
-            The timer will begin immediately after starting the exam.
-        </p>
-    </div>
-</div>
 <!-- ============================= -->
 <!-- EXAM SCREEN -->
 <!-- ============================= -->
@@ -144,47 +151,55 @@ document.getElementById("closeInstructionBtn").addEventListener("click", () => {
     <!-- Header -->
     <div class="bg-white rounded-lg shadow-lg p-4 mb-4 sticky top-4 z-10">
         <div class="flex justify-between items-center">
+
+            <!-- Student Info -->
             <div>
                 <h2 class="text-xl font-bold" id="studentInfo"></h2>
                 <p class="text-sm text-gray-600">Statistics Challenge 2025 – Final Exam</p>
             </div>
+
+            <!-- Timer -->
             <div class="text-right">
-                <div class="text-sm text-gray-500 mb-1">⏱ Total Time (33m 20s)</div>
-                <div class="text-3xl font-bold text-purple-600" id="timer">33:20</div>
-                <p class="text-xs text-gray-500 mt-1">Each question: 20 seconds</p>
+                <div class="text-sm text-gray-500 mb-1">Total Time (33m 20s)</div>
+                <div id="timer" class="text-3xl font-bold text-purple-600">33:20</div>
+                <p class="text-xs text-gray-500 mt-1">20 seconds per question</p>
             </div>
         </div>
     </div>
 
-    <!-- Single Question Container -->
+    <!-- Question Container -->
     <div id="questionContainer" class="mb-6"></div>
+
 </div>
+
 
 <!-- ============================= -->
 <!-- RESULT SCREEN -->
 <!-- ============================= -->
-<div id="resultScreen" class="hidden min-h-screen flex items-center justify-center p-4">
+<div id="resultScreen" class="hidden min-h-screen flex items-center justify-center p-6">
     <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
+
         <div class="text-center mb-8">
             <div class="text-6xl mb-4">🎉</div>
             <h2 class="text-3xl font-bold mb-2">Your Exam is Complete!</h2>
-            <p class="text-gray-600">Thank you for your effort.</p>
+            <p class="text-gray-600">Your responses have been successfully recorded.</p>
         </div>
 
         <div id="resultContent" class="space-y-4"></div>
 
-        <div class="text-center mt-8">
+        <div class="text-center mt-10">
             <button onclick="location.reload()"
                     class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg transition">
                 Return to Home
             </button>
         </div>
+
     </div>
 </div>
 <script>
-// ===============================
-// FIREBASE INIT
-// ===============================
+/* ============================================================
+   FIREBASE INITIALIZATION
+   ============================================================ */
 const firebaseConfig = {
     apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
     authDomain: "sswt-final.firebaseapp.com",
@@ -196,9 +211,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// ===============================
-// GLOBAL VARIABLES
-// ===============================
+/* ============================================================
+   GLOBAL VARIABLES
+   ============================================================ */
 let questions = [];
 let answers = [];
 let currentIndex = 0;
@@ -207,13 +222,14 @@ let examTimer = null;
 let questionTimer = null;
 
 const TOTAL_TIME = 2000;   // 33m 20s
-const QUESTION_TIME = 20;  // 20s per question
+const QUESTION_TIME = 20;  // each question: 20 seconds
 
 let examStartTime = null;
 
-// ===============================
-// SEEDED RANDOM & SHUFFLE
-// ===============================
+
+/* ============================================================
+   SEED-BASED RANDOM (for unique order per student)
+   ============================================================ */
 function seededRandom(seed) {
     const x = Math.sin(seed) * 10000;
     return x - Math.floor(x);
@@ -229,25 +245,22 @@ function shuffleQuestionsWithSeed(qList, seed) {
     return arr;
 }
 
-// ===============================
-// LOAD QUESTIONS FROM FIREBASE
-// ===============================
+
+/* ============================================================
+   LOAD QUESTIONS FROM FIRESTORE
+   ============================================================ */
 async function loadQuestions() {
     const doc = await db.collection("exam_questions").doc("current").get();
-    if (!doc.exists) {
-        throw new Error("No exam questions document found.");
-    }
+    if (!doc.exists) throw new Error("Questions document missing.");
     const data = doc.data();
-    if (!data.questions || !Array.isArray(data.questions)) {
-        throw new Error("Invalid question data format.");
-    }
-    // 기대 포맷: [{ id: "Q1", text: "..." }, ...]
+    if (!Array.isArray(data.questions)) throw new Error("Invalid questions format.");
     return data.questions;
 }
 
-// ===============================
-// RENDER QUESTION
-// ===============================
+
+/* ============================================================
+   RENDER QUESTION (4-Choice MCQ)
+   ============================================================ */
 function showQuestion() {
     const container = document.getElementById("questionContainer");
     container.innerHTML = "";
@@ -258,22 +271,33 @@ function showQuestion() {
     }
 
     const q = questions[currentIndex];
+    const opts = q.options;
+
+    // HTML for options
+    let optionsHTML = "";
+    opts.forEach((opt, idx) => {
+        optionsHTML += `
+            <label class="block bg-gray-50 border rounded-lg p-3 mb-3 hover:bg-gray-100 cursor-pointer">
+                <input type="radio" name="mcqOption" value="${idx}" class="mr-2">
+                ${opt}
+            </label>
+        `;
+    });
 
     container.innerHTML = `
         <div class="bg-white p-6 rounded-xl shadow-lg animate-fadeIn">
+
             <h3 class="text-xl font-bold mb-3">
                 Question ${currentIndex + 1} / ${questions.length}
             </h3>
 
-            <p class="text-gray-800 mb-4 whitespace-pre-line leading-relaxed">
+            <p class="text-gray-800 mb-5 whitespace-pre-line leading-relaxed">
                 ${q.text}
             </p>
 
-            <input type="text" id="studentAnswer"
-                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                   placeholder="Type your answer here...">
+            ${optionsHTML}
 
-            <p class="text-right text-sm text-gray-600 mt-3">
+            <p class="text-right text-sm text-gray-600 mt-4">
                 ⏳ Time left: <span id="questionTimer">${QUESTION_TIME}</span> sec
             </p>
         </div>
@@ -282,9 +306,10 @@ function showQuestion() {
     startQuestionTimer();
 }
 
-// ===============================
-// QUESTION TIMER (20s)
-// ===============================
+
+/* ============================================================
+   QUESTION TIMER: 20 seconds
+   ============================================================ */
 function startQuestionTimer() {
     let timeLeft = QUESTION_TIME;
 
@@ -292,8 +317,9 @@ function startQuestionTimer() {
 
     questionTimer = setInterval(() => {
         timeLeft--;
-        const span = document.getElementById("questionTimer");
-        if (span) span.textContent = timeLeft;
+
+        const timerEl = document.getElementById("questionTimer");
+        if (timerEl) timerEl.textContent = timeLeft;
 
         if (timeLeft <= 0) {
             clearInterval(questionTimer);
@@ -302,20 +328,20 @@ function startQuestionTimer() {
     }, 1000);
 }
 
-// ===============================
-// SAVE ANSWER & GO TO NEXT
-// ===============================
-function saveAnswerAndNext() {
-    const input = document.getElementById("studentAnswer");
-    const ans = input ? (input.value || "") : "";
 
-    if (questions[currentIndex]) {
-        answers.push({
-            qid: questions[currentIndex].id,
-            question: questions[currentIndex].text,
-            answer: ans
-        });
-    }
+/* ============================================================
+   SAVE ANSWER & MOVE TO NEXT
+   ============================================================ */
+function saveAnswerAndNext() {
+    let selected = document.querySelector("input[name='mcqOption']:checked");
+    let answerIndex = selected ? parseInt(selected.value) : -1;
+
+    answers.push({
+        qid: questions[currentIndex].id,
+        question: questions[currentIndex].text,
+        selected: answerIndex,
+        options: questions[currentIndex].options
+    });
 
     currentIndex++;
 
@@ -327,9 +353,10 @@ function saveAnswerAndNext() {
     showQuestion();
 }
 
-// ===============================
-// EXAM TIMER (TOTAL 2000s)
-// ===============================
+
+/* ============================================================
+   MAIN EXAM TIMER: 2000 seconds
+   ============================================================ */
 function startExamTimer() {
     clearInterval(examTimer);
 
@@ -346,79 +373,76 @@ function startExamTimer() {
 
         const m = Math.floor(left / 60);
         const s = left % 60;
+        document.getElementById("timer").textContent =
+            `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 
-        const t = document.getElementById("timer");
-        if (t) {
-            t.textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-            if (left <= 30) {
-                t.classList.add("text-red-600");
-            }
+        if (left <= 30) {
+            document.getElementById("timer").classList.add("text-red-600");
         }
     }, 1000);
 }
 </script>
 <script>
-// ======================================
-// START EXAM (1 attempt limit + shuffle)
-// ======================================
+/* ============================================================
+   START EXAM (after instructions)
+   ============================================================ */
+document.getElementById("startExamBtn").addEventListener("click", async () => {
+    document.getElementById("instructionModal").classList.add("hidden");
+    await startExam();
+});
+
+
 async function startExam() {
     const name = document.getElementById("studentName").value.trim();
     const id = document.getElementById("studentId").value.trim();
 
     if (!name || !id) {
-        alert("Please enter your name and student ID.");
+        alert("Missing student information.");
         return;
     }
 
-    // 1회 응시 제한 확인
+    // 1 attempt restriction
     try {
-        const respDoc = await db.collection("exam_responses").doc(id).get();
-        if (respDoc.exists) {
-            alert("You have already taken this exam. No retakes are allowed.");
+        const existing = await db.collection("exam_responses").doc(id).get();
+        if (existing.exists) {
+            alert("You have already taken this exam. No retakes allowed.");
+            location.reload();
             return;
         }
     } catch (err) {
-        console.error("Error checking previous attempts:", err);
-        alert("Could not verify attempt history. Please contact your instructor.");
+        console.error(err);
+        alert("Could not verify attempt history.");
         return;
     }
 
-    // 문제 로드
+    // Load & shuffle questions
     try {
-        let loaded = await loadQuestions();
-        // 학번을 seed로 사용해 문제 순서를 학생마다 다르게 셔플
+        let qList = await loadQuestions();
         const seed = parseInt(id) || Date.now();
-        questions = shuffleQuestionsWithSeed(loaded, seed);
+        questions = shuffleQuestionsWithSeed(qList, seed);
     } catch (err) {
-        console.error("Error loading questions:", err);
-        alert("Failed to load exam questions. Please contact your instructor.");
+        console.error(err);
+        alert("Error loading questions.");
         return;
     }
 
-    if (!questions || questions.length === 0) {
-        alert("No exam questions available. Please contact your instructor.");
-        return;
-    }
-
-    // 로그인 화면 숨기고 시험 화면 표시
-    document.getElementById("loginScreen").classList.add("hidden");
+    // Begin exam
     document.getElementById("examScreen").classList.remove("hidden");
-
     document.getElementById("studentInfo").textContent = `${name} (${id})`;
 
-    // 시험 타이머 시작
+    currentIndex = 0;
+    answers = [];
+
     examStartTime = Date.now();
     startExamTimer();
 
-    // 첫 문제로 이동
-    currentIndex = 0;
-    answers = [];
     showQuestion();
 }
 
-// ======================================
-// SUBMIT EXAM
-// ======================================
+
+/* ============================================================
+   SUBMIT EXAM (AUTO or FINAL)
+   ============================================================ */
 let examAlreadySubmitted = false;
 
 async function submitExam() {
@@ -428,23 +452,23 @@ async function submitExam() {
     clearInterval(examTimer);
     clearInterval(questionTimer);
 
-    // 현재 문제 답안 반영 (타이머 종료 직후 상황 대비)
-    const currInput = document.getElementById("studentAnswer");
-    if (currInput && answers.length < questions.length) {
+    // Save last unanswered question if any
+    let selected = document.querySelector("input[name='mcqOption']:checked");
+    let answerIndex = selected ? parseInt(selected.value) : -1;
+
+    if (answers.length < questions.length) {
         answers.push({
             qid: questions[currentIndex]?.id,
             question: questions[currentIndex]?.text,
-            answer: currInput.value || ""
+            selected: answerIndex,
+            options: questions[currentIndex]?.options || []
         });
     }
 
     const name = document.getElementById("studentName").value.trim();
     const id = document.getElementById("studentId").value.trim();
-    const timeSpent = examStartTime
-        ? Math.floor((Date.now() - examStartTime) / 1000)
-        : null;
+    const timeSpent = Math.floor((Date.now() - examStartTime) / 1000);
 
-    // Firestore에 응시 기록 저장
     try {
         await db.collection("exam_responses").doc(id).set({
             name: name,
@@ -455,75 +479,69 @@ async function submitExam() {
             timeSpent: timeSpent
         });
     } catch (err) {
-        console.error("Error saving responses:", err);
-        alert("There was an error submitting your exam. Please contact your instructor.");
+        console.error(err);
+        alert("Error saving your answers.");
     }
 
     showResults(name, id, timeSpent);
 }
 
-// ======================================
-// SHOW RESULTS
-// ======================================
+
+/* ============================================================
+   SHOW RESULTS SCREEN
+   ============================================================ */
 function showResults(name, id, timeSpent) {
     document.getElementById("examScreen").classList.add("hidden");
     document.getElementById("resultScreen").classList.remove("hidden");
 
     const resultContent = document.getElementById("resultContent");
 
-    const answeredCount = answers.filter(a => (a.answer || "").trim() !== "").length;
-    const blankCount = (questions?.length || 0) - answeredCount;
+    const answeredCount = answers.filter(a => a.selected !== -1).length;
+    const blankCount = questions.length - answeredCount;
 
-    const timeText = timeSpent != null
-        ? `${Math.floor(timeSpent / 60)}m ${timeSpent % 60}s`
-        : "N/A";
+    const timeText = `${Math.floor(timeSpent / 60)}m ${timeSpent % 60}s`;
 
     let html = `
         <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 rounded-lg mb-6">
             <h3 class="text-2xl font-bold mb-1">${name} (${id})</h3>
-            <p class="text-lg">Your responses have been recorded.</p>
-            <p class="text-sm mt-2">Question count: ${questions.length}</p>
-            <p class="text-sm">Time spent: ${timeText}</p>
+            <p class="text-lg">Your exam has been recorded.</p>
+            <p class="text-sm mt-2">Total Questions: ${questions.length}</p>
+            <p class="text-sm">Time Spent: ${timeText}</p>
         </div>
 
         <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-4">
-            <h4 class="font-bold text-blue-900 mb-1">Summary</h4>
+            <h4 class="font-bold text-blue-900 mb-2">Summary</h4>
             <p class="text-sm text-blue-800">
-                Answered: <strong>${answeredCount}</strong> &nbsp;&nbsp; | &nbsp;&nbsp;
+                Answered: <strong>${answeredCount}</strong> |
                 Blank: <strong>${blankCount}</strong>
             </p>
-            <p class="text-xs text-blue-700 mt-1">
-                Detailed scoring and grading will be provided later by your instructor.
+            <p class="text-xs mt-1 text-blue-700">
+                Grading will be provided later by your instructor.
             </p>
         </div>
 
-        <div class="mt-6 text-sm text-gray-600">
-            <p class="mb-2 font-semibold">Your submitted answers (for your reference):</p>
+        <div class="mt-6 space-y-3">
+            <p class="font-semibold text-gray-700">Your Answers:</p>
     `;
 
     answers.forEach((a, idx) => {
+        const studentAnswer =
+            a.selected === -1
+                ? "<span class='text-gray-400'>(blank)</span>"
+                : a.options[a.selected];
+
         html += `
-            <div class="bg-gray-50 p-3 rounded mb-2">
-                <p class="text-gray-700 font-semibold mb-1">
-                    Q${idx + 1}
-                </p>
-                <p class="text-gray-600 text-xs mb-1 whitespace-pre-line">
-                    ${a.question || ""}
-                </p>
-                <p class="text-gray-900 text-sm">
-                    <span class="font-semibold">Your answer:</span>
-                    ${
-                        (a.answer || "").trim() !== ""
-                        ? a.answer
-                        : "<span class='text-gray-400'>(blank)</span>"
-                    }
+            <div class="bg-gray-50 p-3 rounded">
+                <p class="font-semibold text-gray-700 mb-1">Q${idx + 1}</p>
+                <p class="text-xs text-gray-500 mb-1 whitespace-pre-line">${a.question}</p>
+                <p class="text-gray-800">
+                    <span class="font-semibold">Your answer:</span> ${studentAnswer}
                 </p>
             </div>
         `;
     });
 
     html += `</div>`;
-
     resultContent.innerHTML = html;
 }
 </script>
