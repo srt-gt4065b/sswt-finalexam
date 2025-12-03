@@ -454,23 +454,167 @@
         // ============================================
         // Firebase에서 문제 및 시간 설정 로드
         // ============================================
-        async function loadQuestionsFromFirebase(mode) {
-            try {
-                const doc = await db.collection('questions').doc(mode).get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    return {
-                        questions: data.questions || [],
-                        timeLimit: data.timeLimit || (mode === 'practice' ? 600 : 1200) // 기본값
-                    };
-                }
-                return { questions: [], timeLimit: mode === 'practice' ? 600 : 1200 };
-            } catch (error) {
-                console.error('Firebase 로드 오류:', error);
-                alert('문제를 불러오는 데 실패했습니다. Firebase 설정을 확인하세요.');
-                return { questions: [], timeLimit: 600 };
-            }
+       // ============================================
+// Firebase 대신 하드코딩 문제 로드
+// ============================================
+async function loadQuestionsFromFirebase(mode) {
+
+    // 시험 시간: 40분 = 2400초
+    const fixedTimeLimit = 2400;
+
+    const hardcodedQuestions = [
+        {
+            questionId: "Q1",
+            questionText: `
+You are given the following 20 Galaga scores generated from your student ID:
+
+Scores: {scores}
+
+1) Extract only the odd-indexed attempts (1st, 3rd, 5th, …).  
+2) From those values, keep only the scores greater than your student ID’s last digit.  
+3) Compute the sample mean of the remaining values.  
+4) Round to two decimals.
+            `,
+            type: "short",
+            difficulty: "medium",
+            points: 10
+        },
+        {
+            questionId: "Q2",
+            questionText: `
+Using the same 20 scores:
+
+1) Split the 20 scores into four groups of five.  
+2) From each group, take the middle value (the 3rd score).  
+3) From these four selected values, keep only the ones greater than {avgScore}.  
+4) Compute the sample variance.  
+5) Round to two decimals.
+            `,
+            type: "short",
+            difficulty: "hard",
+            points: 10
+        },
+        {
+            questionId: "Q3",
+            questionText: `
+Using the full 20-score dataset:
+
+1) Keep all values between {minScore} and {maxScore}, inclusive.  
+2) From these, select only those for which (value mod 3) = 2.  
+3) Compute the median of the selected values.
+            `,
+            type: "short",
+            difficulty: "medium",
+            points: 10
+        },
+        {
+            questionId: "Q4",
+            questionText: `
+Using your first 10 attempts:
+
+X = attempts 1 to 10  
+Y = the first 10 values from {scores}
+
+1) Use only attempts whose score is greater than {first5Avg}.  
+2) Compute the slope β₁ of the regression line predicting:
+   Score = β₀ + β₁(Attempt)
+3) Round β₁ to three decimals.
+            `,
+            type: "short",
+            difficulty: "hard",
+            points: 10
+        },
+        {
+            questionId: "Q5",
+            questionText: `
+Using attempts 11–20:
+
+1) Compute their sample mean.  
+2) Compare it to the value {randomNum1}.  
+3) Answer:
+   (a) the mean  
+   (b) whether it is "Higher", "Lower", or "Equal" to {randomNum1}.
+            `,
+            type: "short",
+            difficulty: "easy",
+            points: 10
+        },
+        {
+            questionId: "Q6",
+            questionText: `
+Let d be the last digit of your student ID.
+
+1) From all 20 scores, keep only the values ≥ d × 1000.  
+2) Compute the sample standard deviation.  
+3) Round to two decimals.
+            `,
+            type: "short",
+            difficulty: "medium",
+            points: 10
+        },
+        {
+            questionId: "Q7",
+            questionText: `
+Using the full score list:
+
+1) Select scores greater than {avgScore}.  
+2) From those, keep only values whose digit-sum is even.  
+3) Report how many values remain.
+            `,
+            type: "short",
+            difficulty: "easy",
+            points: 10
+        },
+        {
+            questionId: "Q8",
+            questionText: `
+Using attempts 6–15:
+
+1) Select only scores within ±{stdDev} of {avgScore}.  
+2) From those, keep only scores whose attempt number is prime.  
+3) Compute the range (max – min) of the selected values.
+            `,
+            type: "short",
+            difficulty: "hard",
+            points: 10
+        },
+        {
+            questionId: "Q9",
+            questionText: `
+Let X be your first 5 scores:
+
+X = {first5Scores}
+
+1) Compute the sample mean of X.  
+2) Compute a 95% confidence interval for the population mean assuming normality.  
+3) Use your own sample standard deviation of X.  
+4) Write the interval as (Lower, Upper).
+            `,
+            type: "essay",
+            difficulty: "hard",
+            points: 10
+        },
+        {
+            questionId: "Q10",
+            questionText: `
+Given p = {randomPValue}:
+
+1) Assume X ~ Binomial(n = 10, p).  
+2) Compute P(X ≥ 2).  
+3) Round to four decimals.
+            `,
+            type: "short",
+            difficulty: "medium",
+            points: 10
         }
+    ];
+
+    return {
+        questions: hardcodedQuestions,
+        timeLimit: fixedTimeLimit
+    };
+}
+
 
         // ============================================
         // 내 데이터 확인
