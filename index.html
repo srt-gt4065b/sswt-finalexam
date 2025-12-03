@@ -909,5 +909,24 @@ Given p = {randomPValue}:
             resultContent.innerHTML = html;
         }
     </script>
+    <script>
+document.getElementById("agreeCheck").addEventListener("change", () => {
+    const btn = document.getElementById("closeInstructionBtn");
+    if (agreeCheck.checked) {
+        btn.disabled = false;
+        btn.classList.remove("bg-gray-400", "cursor-not-allowed");
+        btn.classList.add("bg-purple-600", "hover:bg-purple-700");
+    } else {
+        btn.disabled = true;
+        btn.classList.add("bg-gray-400", "cursor-not-allowed");
+        btn.classList.remove("bg-purple-600", "hover:bg-purple-700");
+    }
+});
+
+document.getElementById("closeInstructionBtn").addEventListener("click", () => {
+    document.getElementById("instructionModal").classList.add("hidden");
+});
+</script>
+
 </body>
 </html>
