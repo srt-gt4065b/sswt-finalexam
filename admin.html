@@ -2,15 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin – MCQ Question Manager V3</title>
+    <title>Admin – MCQ Question Manager V5</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
 </head>
 
-<body class="bg-gray-100 min-h-screen p-10">
+<body class="bg-gray-100 min-h-screen p-6">
 
 <!-- ========================================================= -->
 <!-- PASSWORD GATE -->
@@ -49,123 +48,231 @@ function checkAdminPassword() {
 }
 </script>
 
-
 <!-- ========================================================= -->
-<!-- MAIN CONTENT -->
+<!-- MAIN WRAPPER -->
 <!-- ========================================================= -->
+<div class="max-w-7xl mx-auto bg-white p-6 md:p-10 rounded-2xl shadow-xl">
 
-<div class="max-w-6xl mx-auto bg-white p-10 rounded-2xl shadow-xl">
-
-    <h1 class="text-4xl font-bold text-center text-purple-600 mb-10">
-        Admin – MCQ Question Manager V3
+    <h1 class="text-3xl md:text-4xl font-bold text-center text-purple-600 mb-6">
+        Admin – MCQ Question Manager V5
     </h1>
 
+    <!-- Version selector -->
+    <div class="flex flex-wrap items-center gap-3 mb-6 justify-between">
+        <div class="flex items-center gap-2">
+            <label class="font-semibold text-gray-700">Target exam version (docId):</label>
+            <input id="docIdInput"
+                   class="border rounded-lg px-3 py-2"
+                   value="current"
+                   placeholder="e.g., current, final2025, midterm2025">
+        </div>
+        <div class="text-sm text-gray-500">
+            Saved to Firestore → <span class="font-mono">exam_questions / [docId]</span>
+        </div>
+    </div>
 
-    <!-- GRID: CSV UPLOAD + TOOLS -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+    <!-- Tabs -->
+    <div class="border-b mb-4 flex flex-wrap gap-2">
+        <button class="tab-btn px-4 py-2 text-sm font-semibold border-b-2 border-purple-600 text-purple-700"
+                data-tab="uploadTab">Upload (CSV / JSON)</button>
+        <button class="tab-btn px-4 py-2 text-sm font-semibold text-gray-500"
+                data-tab="randomTab">Random Generator</button>
+        <button class="tab-btn px-4 py-2 text-sm font-semibold text-gray-500"
+                data-tab="templateTab">Template Loader</button>
+        <button class="tab-btn px-4 py-2 text-sm font-semibold text-gray-500"
+                data-tab="previewTab">Preview & Edit</button>
+        <button class="tab-btn px-4 py-2 text-sm font-semibold text-gray-500"
+                data-tab="firestoreTab">Firestore Upload</button>
+    </div>
 
-        <!-- CSV Upload -->
+    <!-- ===================== -->
+    <!-- TAB: UPLOAD (CSV/JSON) -->
+    <!-- ===================== -->
+    <div id="uploadTab" class="tab-pane block">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- CSV Upload -->
+            <div class="border rounded-xl p-6 bg-gray-50">
+                <h2 class="text-xl font-bold mb-3 text-purple-700">Upload Questions via CSV</h2>
+                <p class="text-sm text-gray-600 mb-2">
+                    Format: <span class="font-mono">id,question,opt1,opt2,opt3,opt4,answer</span>
+                </p>
+                <input id="csvFile" type="file" accept=".csv"
+                       class="w-full border p-3 rounded bg-white shadow-sm">
+                <button onclick="previewCSV()"
+                        class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold">
+                    Preview CSV
+                </button>
+            </div>
+
+            <!-- JSON Upload -->
+            <div class="border rounded-xl p-6 bg-gray-50">
+                <h2 class="text-xl font-bold mb-3 text-purple-700">Upload Questions via JSON</h2>
+                <p class="text-sm text-gray-600 mb-2">
+                    Supported formats:
+                </p>
+                <ul class="text-xs text-gray-600 list-disc ml-5 mb-2">
+                    <li><span class="font-mono">[{"id","text","options","answer"}, ...]</span></li>
+                    <li><span class="font-mono">{"Low":[...], "Medium":[...], "High":[...]}</span></li>
+                </ul>
+                <input id="jsonFile" type="file" accept=".json"
+                       class="w-full border p-3 rounded bg-white shadow-sm">
+                <button onclick="previewJSON()"
+                        class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold">
+                    Preview JSON
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== -->
+    <!-- TAB: RANDOM GENERATOR -->
+    <!-- ===================== -->
+    <div id="randomTab" class="tab-pane hidden mt-4">
         <div class="border rounded-xl p-6 bg-gray-50">
-            <h2 class="text-xl font-bold mb-4 text-purple-700">Upload Questions via CSV</h2>
-            <input id="csvFile" type="file" accept=".csv"
-                class="w-full border p-3 rounded bg-white shadow-sm">
-            <button onclick="previewCSV()"
-                class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold">
-                Preview CSV
+            <h2 class="text-xl font-bold mb-4 text-purple-700">Random Question Generator</h2>
+
+            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Topic</label>
+                    <select id="topicSelect"
+                            class="w-full p-2 border rounded">
+                        <option>Descriptive Statistics</option>
+                        <option>Probability</option>
+                        <option>Sampling & Sampling Distribution</option>
+                        <option>Estimation (Confidence Interval)</option>
+                        <option>Hypothesis Testing</option>
+                        <option>Regression Basics</option>
+                        <option>Practical Real-World Applications</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Difficulty</label>
+                    <select id="levelSelect"
+                            class="w-full p-2 border rounded">
+                        <option>Low</option>
+                        <option>Medium</option>
+                        <option>High</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Number of questions</label>
+                    <input id="numQuestions" type="number" min="1" value="10"
+                           class="w-full p-2 border rounded">
+                </div>
+            </div>
+
+            <button onclick="generateRandomQuestions()"
+                    class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-bold">
+                Generate & Add to Preview
             </button>
-            <button onclick="uploadCSV()"
-                class="mt-3 w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-bold">
-                Upload to Firestore
-            </button>
+
+            <p class="text-xs text-gray-500 mt-3">
+                ※ 템플릿 풀 크기보다 많이 생성 요청하면, 가능한 범위 내에서만 생성합니다.
+            </p>
+        </div>
+    </div>
+
+    <!-- ===================== -->
+    <!-- TAB: TEMPLATE LOADER -->
+    <!-- ===================== -->
+    <div id="templateTab" class="tab-pane hidden mt-4">
+        <div class="border rounded-xl p-6 bg-gray-50">
+            <h2 class="text-xl font-bold mb-4 text-purple-700">Load Topic Templates (JSON)</h2>
+
+            <p class="text-sm text-gray-600 mb-3">
+                /templates 폴더에 있는 주제별 JSON 파일을 불러와서 Preview에 추가합니다.
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-3">
+                <button onclick="loadTemplateJSON('descriptive.json','Descriptive Statistics')"
+                        class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">
+                    descriptive.json
+                </button>
+                <button onclick="loadTemplateJSON('probability.json','Probability')"
+                        class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">
+                    probability.json
+                </button>
+                <button onclick="loadTemplateJSON('sampling.json','Sampling & Sampling Distribution')"
+                        class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">
+                    sampling.json
+                </button>
+                <button onclick="loadTemplateJSON('estimation.json','Estimation (Confidence Interval)')"
+                        class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">
+                    estimation.json
+                </button>
+                <button onclick="loadTemplateJSON('hypothesis.json','Hypothesis Testing')"
+                        class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">
+                    hypothesis.json
+                </button>
+                <button onclick="loadTemplateJSON('regression.json','Regression Basics')"
+                        class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">
+                    regression.json
+                </button>
+                <button onclick="loadTemplateJSON('practical.json','Practical Real-World Applications')"
+                        class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm md:col-span-3">
+                    practical.json
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== -->
+    <!-- TAB: PREVIEW & EDIT -->
+    <!-- ===================== -->
+    <div id="previewTab" class="tab-pane hidden mt-4">
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="text-xl font-bold text-gray-800">Preview & Inline Edit</h2>
+            <div class="flex gap-2">
+                <button onclick="addEmptyQuestion()"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-semibold">
+                    + Add Empty Question
+                </button>
+                <button onclick="clearPreview()"
+                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-semibold">
+                    Clear All
+                </button>
+            </div>
         </div>
 
-
-        <!-- Tools -->
-        <div class="border rounded-xl p-6 bg-gray-50">
-
-            <h2 class="text-xl font-bold mb-4 text-purple-700">Tools</h2>
-
-            <button onclick="downloadExampleCSV()"
-                class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold mb-4">
-                Download Example CSV
-            </button>
-
-            <button onclick="openRandomModal()"
-                class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-bold mb-4">
-                Generate Random Questions (Topic + Level)
-            </button>
-
-            <button onclick="clearPreview()"
-                class="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg font-bold">
-                Clear Preview
-            </button>
+        <div id="previewArea" class="border rounded-xl p-2 bg-gray-50 max-h-[600px] overflow-auto">
+            <p class="text-sm text-gray-500">No questions loaded yet.</p>
         </div>
-
     </div>
 
+    <!-- ===================== -->
+    <!-- TAB: FIRESTORE UPLOAD -->
+    <!-- ===================== -->
+    <div id="firestoreTab" class="tab-pane hidden mt-4">
+        <div class="border rounded-xl p-6 bg-gray-50">
+            <h2 class="text-xl font-bold text-purple-700 mb-4">Upload to Firestore</h2>
 
-    <!-- Preview Area -->
-    <div id="previewArea" class="hidden mt-10">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">Preview</h2>
-        <div id="previewTable" class="overflow-auto border rounded-xl p-4 bg-gray-50"></div>
-        <button onclick="uploadSelectedQuestions()"
-            class="mt-6 w-full bg-purple-700 hover:bg-purple-800 text-white py-4 rounded-lg font-bold">
-            Upload Checked Questions Only
-        </button>
+            <p class="text-sm text-gray-700 mb-4">
+                현재 preview에 있는 문항들을 선택적으로 또는 전체 업로드할 수 있습니다.<br>
+                저장 위치: <span class="font-mono">exam_questions / [docId]</span>
+            </p>
+
+            <div class="flex flex-col md:flex-row gap-3 mb-4">
+                <button onclick="uploadSelectedQuestions()"
+                        class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-bold">
+                    Upload Checked Questions Only
+                </button>
+                <button onclick="uploadAllQuestions()"
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold">
+                    Upload ALL Questions in Preview
+                </button>
+            </div>
+
+            <p class="text-xs text-gray-500">
+                업로드 시, <span class="font-mono">exam_questions/versions/history/[timestamp]</span> 에도 자동 백업되고,
+                backup JSON 파일이 자동으로 다운로드됩니다.
+            </p>
+        </div>
     </div>
 
-
-    <p id="statusMsg" class="text-center mt-8 text-xl font-semibold"></p>
+    <p id="statusMsg" class="text-center mt-6 text-lg font-semibold"></p>
 
 </div>
-
-
-<!-- ========================================================= -->
-<!-- RANDOM QUESTION MODAL -->
-<!-- ========================================================= -->
-
-<div id="randomModal"
-     class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-6 z-50">
-
-    <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-lg w-full">
-        <h2 class="text-3xl font-bold text-purple-600 mb-6 text-center">
-            Generate Random Questions
-        </h2>
-
-        <label class="block font-semibold mb-2">Select Topic:</label>
-        <select id="topicSelect" class="w-full p-3 border rounded-lg mb-4">
-            <option>Descriptive Statistics</option>
-            <option>Probability</option>
-            <option>Sampling & Sampling Distribution</option>
-            <option>Estimation (Confidence Interval)</option>
-            <option>Hypothesis Testing</option>
-            <option>Regression Basics</option>
-            <option>Practical Real-World Applications</option>
-        </select>
-
-        <label class="block font-semibold mb-2">Select Difficulty:</label>
-        <select id="levelSelect" class="w-full p-3 border rounded-lg mb-4">
-            <option>Low</option>
-            <option>Medium</option>
-            <option>High</option>
-        </select>
-
-        <label class="block font-semibold mb-2">How many questions?</label>
-        <input id="numQuestions" type="number" min="1" value="10"
-               class="w-full p-3 border rounded-lg mb-6">
-
-        <button onclick="generateRandomQuestions()"
-            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-bold">
-            Generate
-        </button>
-
-        <button onclick="closeRandomModal()"
-            class="w-full mt-4 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-bold">
-            Cancel
-        </button>
-    </div>
-</div>
-
 
 <!-- ========================================================= -->
 <!-- FIREBASE INIT -->
@@ -183,14 +290,43 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 </script>
 
-
-
 <!-- ========================================================= -->
-<!-- CSV PARSING -->
+<!-- GLOBAL STATE -->
 <!-- ========================================================= -->
 <script>
-let previewData = [];
+let previewData = []; 
+// 구조: {id, question, opt1, opt2, opt3, opt4, answer, topic?, level?}
+</script>
 
+<!-- ========================================================= -->
+<!-- TABS LOGIC -->
+<!-- ========================================================= -->
+<script>
+const tabButtons = document.querySelectorAll(".tab-btn");
+const tabPanes = document.querySelectorAll(".tab-pane");
+
+tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const target = btn.dataset.tab;
+        tabButtons.forEach(b => {
+            b.classList.remove("border-purple-600","text-purple-700");
+            b.classList.add("text-gray-500");
+        });
+        btn.classList.add("border-purple-600","text-purple-700");
+        btn.classList.remove("text-gray-500");
+
+        tabPanes.forEach(pane => {
+            pane.classList.add("hidden");
+        });
+        document.getElementById(target).classList.remove("hidden");
+    });
+});
+</script>
+
+<!-- ========================================================= -->
+<!-- CSV PARSE + PREVIEW -->
+<!-- ========================================================= -->
+<script>
 function parseCSV(text) {
     const lines = text.trim().split("\n");
     const headers = lines[0].split(",").map(h => h.trim());
@@ -198,219 +334,161 @@ function parseCSV(text) {
     return lines.slice(1).map(line => {
         const cols = line.split(",").map(c => c.trim());
         let obj = {};
-        headers.forEach((h, i) => (obj[h] = cols[i]));
+        headers.forEach((h, i) => obj[h] = cols[i]);
         return obj;
     });
 }
 
 function previewCSV() {
     const file = document.getElementById("csvFile").files[0];
-    if (!file) return alert("Please select a CSV file.");
-
+    if (!file) {
+        alert("Select a CSV file first.");
+        return;
+    }
     const reader = new FileReader();
     reader.onload = e => {
-        previewData = parseCSV(e.target.result);
-        renderPreviewTable(previewData);
+        const rows = parseCSV(e.target.result);
+        rows.forEach(r => {
+            previewData.push({
+                id: r.id || "",
+                question: r.question || "",
+                opt1: r.opt1 || "",
+                opt2: r.opt2 || "",
+                opt3: r.opt3 || "",
+                opt4: r.opt4 || "",
+                answer: r.answer ? parseInt(r.answer) : 0
+            });
+        });
+        renderPreviewTable();
+        document.getElementById("statusMsg").textContent =
+            `✅ Added ${rows.length} questions from CSV.`;
+        document.getElementById("statusMsg").className =
+            "text-green-600 text-center text-lg font-semibold";
     };
     reader.readAsText(file);
 }
 </script>
 
-
-
 <!-- ========================================================= -->
-<!-- PREVIEW TABLE RENDER -->
+<!-- JSON PREVIEW (2 FORMATS 지원) -->
 <!-- ========================================================= -->
 <script>
-function renderPreviewTable(data) {
-    const area = document.getElementById("previewArea");
-    const tbl = document.getElementById("previewTable");
-
-    if (data.length === 0) {
-        tbl.innerHTML = "<p>No data loaded.</p>";
+function previewJSON() {
+    const file = document.getElementById("jsonFile").files[0];
+    if (!file) {
+        alert("Select a JSON file first.");
         return;
     }
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const data = JSON.parse(e.target.result);
 
-    let html = `
-    <table class="min-w-full border text-sm">
-        <thead>
-            <tr class="bg-gray-200">
-                <th class="border px-2 py-2">Use</th>
-                ${Object.keys(data[0]).map(h => `<th class="border px-3 py-2">${h}</th>`).join("")}
-            </tr>
-        </thead>
-        <tbody>
-    `;
+            // Format 1: Array of full questions
+            if (Array.isArray(data)) {
+                data.forEach((q, idx) => {
+                    previewData.push({
+                        id: q.id || `J${previewData.length + idx + 1}`,
+                        question: q.text || q.question || "",
+                        opt1: q.options ? (q.options[0] || "") : (q.opt1 || ""),
+                        opt2: q.options ? (q.options[1] || "") : (q.opt2 || ""),
+                        opt3: q.options ? (q.options[2] || "") : (q.opt3 || ""),
+                        opt4: q.options ? (q.options[3] || "") : (q.opt4 || ""),
+                        answer: typeof q.answer === "number" ? q.answer : parseInt(q.answer || 0),
+                        topic: q.topic || "",
+                        level: q.level || ""
+                    });
+                });
+            }
+            // Format 2: { Low:[], Medium:[], High:[] }
+            else if (data.Low || data.Medium || data.High) {
+                ["Low","Medium","High"].forEach(level=>{
+                    if (Array.isArray(data[level])) {
+                        data[level].forEach((q, idx) => {
+                            previewData.push({
+                                id: q.id || `J${previewData.length + idx + 1}`,
+                                question: q.q || q.text || q.question || "",
+                                opt1: q.opts ? (q.opts[0] || "") : (q.options ? q.options[0] : ""),
+                                opt2: q.opts ? (q.opts[1] || "") : (q.options ? q.options[1] : ""),
+                                opt3: q.opts ? (q.opts[2] || "") : (q.options ? q.options[2] : ""),
+                                opt4: q.opts ? (q.opts[3] || "") : (q.options ? q.options[3] : ""),
+                                answer: typeof q.ans === "number" ? q.ans : parseInt(q.answer || 0),
+                                topic: "",
+                                level: level
+                            });
+                        });
+                    }
+                });
+            } else {
+                alert("Unsupported JSON structure.");
+                return;
+            }
 
-    data.forEach((row, idx) => {
-        html += `
-        <tr class="bg-white">
-            <td class="border px-2 py-2 text-center">
-                <input type="checkbox" class="select-q" data-index="${idx}" checked>
-            </td>
-            ${Object.values(row).map(v => `<td class="border px-3 py-2">${v}</td>`).join("")}
-        </tr>`;
-    });
+            renderPreviewTable();
+            document.getElementById("statusMsg").textContent =
+                "✅ JSON questions loaded into preview.";
+            document.getElementById("statusMsg").className =
+                "text-green-600 text-center text-lg font-semibold";
 
-    html += `</tbody></table>`;
-
-    tbl.innerHTML = html;
-    area.classList.remove("hidden");
-}
-
-function clearPreview() {
-    previewData = [];
-    document.getElementById("previewArea").classList.add("hidden");
-    document.getElementById("previewTable").innerHTML = "";
-}
-</script>
-
-
-
-<!-- ========================================================= -->
-<!-- UPLOAD CSV + VERSIONING + BACKUP -->
-<!-- ========================================================= -->
-<script>
-async function uploadCSV() {
-    if (previewData.length === 0)
-        return alert("Preview data first.");
-
-    const questions = previewData.map(row => ({
-        id: row.id,
-        text: row.question,
-        options: [row.opt1, row.opt2, row.opt3, row.opt4],
-        answer: parseInt(row.answer)
-    }));
-
-    await saveQuestionsToFirestore(questions);
-}
-</script>
-
-
-
-<!-- ========================================================= -->
-<!-- UPLOAD SELECTED (CHECKBOX) QUESTIONS -->
-<!-- ========================================================= -->
-<script>
-async function uploadSelectedQuestions() {
-    const checkboxes = document.querySelectorAll(".select-q");
-
-    let selected = [];
-
-    checkboxes.forEach(cb => {
-        if (cb.checked) {
-            const q = previewData[cb.dataset.index];
-            selected.push({
-                id: q.id,
-                text: q.question,
-                options: [q.opt1, q.opt2, q.opt3, q.opt4],
-                answer: parseInt(q.answer)
-            });
+        } catch(err) {
+            console.error(err);
+            alert("Invalid JSON file.");
         }
-    });
-
-    if (selected.length === 0) {
-        alert("No questions selected.");
-        return;
-    }
-
-    await saveQuestionsToFirestore(selected);
+    };
+    reader.readAsText(file);
 }
 </script>
 
-
-
 <!-- ========================================================= -->
-<!-- SAVE TO FIRESTORE + VERSIONING -->
+<!-- TEMPLATE JSON LOADER (주제별 파일) -->
 <!-- ========================================================= -->
 <script>
-async function saveQuestionsToFirestore(questions) {
-    const count = questions.length;
-    const versionKey = new Date().toISOString().replace(/[-:T.Z]/g, "").slice(0, 14);
-
+async function loadTemplateJSON(filename, topicLabel) {
     try {
-        // Save current
-        await db.collection("exam_questions").doc("current").set({
-            questions: questions,
-            count: count,
-            updatedAt: new Date().toISOString()
+        const res = await fetch(`templates/${filename}`);
+        if (!res.ok) {
+            alert(`Cannot load ${filename}. Check path.`);
+            return;
+        }
+        const data = await res.json();
+        let added = 0;
+        ["Low","Medium","High"].forEach(level=>{
+            if (Array.isArray(data[level])) {
+                data[level].forEach(q=>{
+                    previewData.push({
+                        id: q.id || `T${previewData.length + 1}`,
+                        question: q.q || q.text || q.question || "",
+                        opt1: q.opts ? (q.opts[0] || "") : (q.options ? q.options[0] : ""),
+                        opt2: q.opts ? (q.opts[1] || "") : (q.options ? q.options[1] : ""),
+                        opt3: q.opts ? (q.opts[2] || "") : (q.options ? q.options[2] : ""),
+                        opt4: q.opts ? (q.opts[3] || "") : (q.options ? q.options[3] : ""),
+                        answer: typeof q.ans === "number" ? q.ans : parseInt(q.answer || 0),
+                        topic: topicLabel,
+                        level: level
+                    });
+                    added++;
+                });
+            }
         });
-
-        // Save version
-        await db.collection("exam_questions")
-            .doc("versions")
-            .collection("history")
-            .doc(versionKey)
-            .set({
-                questions: questions,
-                count: count,
-                savedAt: new Date().toISOString()
-            });
-
-        // Backup
-        downloadBackupJSON(questions, versionKey);
-
-        document.getElementById("statusMsg").innerHTML =
-            `✅ Uploaded ${count} questions. Version ${versionKey} saved.`;
+        renderPreviewTable();
+        document.getElementById("statusMsg").textContent =
+            `✅ Loaded ${added} questions from ${filename}.`;
         document.getElementById("statusMsg").className =
-            "text-green-600 text-center text-xl font-semibold";
-
-    } catch (err) {
+            "text-green-600 text-center text-lg font-semibold";
+        // 탭 전환
+        document.querySelector('[data-tab="previewTab"]').click();
+    } catch(err) {
         console.error(err);
-        alert("Upload failed.");
+        alert("Failed to load template JSON.");
     }
 }
-
-function downloadBackupJSON(questions, versionKey) {
-    const blob = new Blob([JSON.stringify(questions, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `backup_${versionKey}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-}
 </script>
 
-
-
 <!-- ========================================================= -->
-<!-- EXAMPLE CSV DOWNLOAD -->
+<!-- RANDOM GENERATOR (간단 템플릿 예시) -->
 <!-- ========================================================= -->
 <script>
-function downloadExampleCSV() {
-    const sample =
-`id,question,opt1,opt2,opt3,opt4,answer
-Q1,What is variance?,Spread,Mean,Median,P-value,0
-Q2,What is a p-value?,Prob under null,Mean diff,Std dev,CI,0
-Q3,What is Type I error?,Reject true null,Accept true null,Bias,Sampling error,0`;
-
-    const blob = new Blob([sample], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "example_questions.csv";
-    a.click();
-
-    URL.revokeObjectURL(url);
-}
-</script>
-
-
-
-<!-- ========================================================= -->
-<!-- RANDOM QUESTION GENERATOR -->
-<!-- ========================================================= -->
-<script>
-function openRandomModal() {
-    document.getElementById("randomModal").classList.remove("hidden");
-}
-function closeRandomModal() {
-    document.getElementById("randomModal").classList.add("hidden");
-}
-
-/* 문제 템플릿 */
+// 간단 템플릿 예시 (실제 사용 시 확장 가능)
 const templates = {
     "Descriptive Statistics": {
         Low: [
@@ -418,132 +496,321 @@ const templates = {
             { q: "Which is a measure of spread?", opts: ["Variance", "Mean", "Median", "Mode"], ans: 0 }
         ],
         Medium: [
-            { q: "What is the purpose of standard deviation?", opts: ["Measure variability", "Measure center", "Test hypothesis", "Compute CI"], ans: 0 }
+            { q: "Why is standard deviation useful?", opts: ["It measures variability", "It finds the median", "It reduces errors", "It increases sample size"], ans: 0 }
         ],
         High: [
-            { q: "Why is variance squared but standard deviation not?", opts: ["Mathematical convenience", "Historical reason", "Statistical culture", "No reason"], ans: 0 }
+            { q: "Why is variance squared but SD not?", opts: ["Mathematical convenience", "No reason", "Just tradition", "To confuse students"], ans: 0 }
         ]
     },
-
     "Probability": {
         Low: [
-            { q: "What is the probability of a fair coin landing heads?", opts: ["1/2", "1/3", "1/4", "1"], ans: 0 }
+            { q: "Probability of a fair coin landing heads?", opts: ["1/2", "1/3", "1/4", "1"], ans: 0 }
         ],
         Medium: [
-            { q: "What is conditional probability?", opts: ["Probability given another event", "Probability of everything", "Simple chance", "Impossible events"], ans: 0 }
+            { q: "What is conditional probability?", opts: ["Probability given another event", "Always 1", "Always 0", "Independent event"], ans: 0 }
         ],
         High: [
-            { q: "Bayes' theorem connects which two probabilities?", opts: ["Prior and Posterior", "Mean and Variance", "CI and Margin of Error", "Slope and Intercept"], ans: 0 }
+            { q: "Bayes’ theorem links:", opts: ["Prior and posterior", "Mean and variance", "CI and ME", "Slope and intercept"], ans: 0 }
         ]
     },
-
     "Sampling & Sampling Distribution": {
         Low: [
             { q: "What is a sample?", opts: ["Subset of population", "Entire population", "Median", "Error"], ans: 0 }
         ],
         Medium: [
-            { q: "Sampling distribution refers to distribution of what?", opts: ["Statistics", "Data", "Errors", "Residuals"], ans: 0 }
+            { q: "Sampling distribution is distribution of:", opts: ["Statistics", "Raw data", "Errors", "Residuals"], ans: 0 }
         ],
         High: [
-            { q: "Why is the sampling distribution important?", opts: ["Basis of inference", "Improves mean", "Creates variance", "Removes error"], ans: 0 }
+            { q: "Why is sampling distribution important?", opts: ["Basis of inference", "To draw histograms", "To reduce errors", "No reason"], ans: 0 }
         ]
     },
-
     "Estimation (Confidence Interval)": {
         Low: [
-            { q: "What does a CI estimate?", opts: ["Population parameter", "Sample mean", "Variance", "P-value"], ans: 0 }
+            { q: "CI is used to estimate:", opts: ["Population parameter", "Sample mean only", "Variance only", "P-value"], ans: 0 }
         ],
         Medium: [
-            { q: "95% CI means:", opts: ["Interval capturing true parameter 95% of time", "95% of data points included", "Mean is 95%", "Variance is small"], ans: 0 }
+            { q: "95% CI means:", opts: ["Interval capturing true parameter 95% of times", "95% of data inside", "Mean=95", "Variance small"], ans: 0 }
         ],
         High: [
-            { q: "CI width depends on:", opts: ["Variability", "Season", "Color", "Time of day"], ans: 0 }
+            { q: "CI width depends on:", opts: ["Variability & sample size", "Color of bars", "Test type only", "Nothing"], ans: 0 }
         ]
     },
-
     "Hypothesis Testing": {
         Low: [
-            { q: "Null hypothesis symbol?", opts: ["H0", "H1", "CI", "σ²"], ans: 0 }
+            { q: "Null hypothesis symbol is:", opts: ["H0", "H1", "CI", "σ²"], ans: 0 }
         ],
         Medium: [
-            { q: "Type I error is:", opts: ["Reject true null", "Accept true null", "Wrong variance", "Sampling bias"], ans: 0 }
+            { q: "Type I error is:", opts: ["Rejecting true null", "Failing to reject false null", "Wrong mean", "Sampling error"], ans: 0 }
         ],
         High: [
-            { q: "Power of a test is:", opts: ["1 - Type II error", "1 - Type I error", "Variance", "CI"], ans: 0 }
+            { q: "Test power is:", opts: ["1 - Type II error", "1 - Type I error", "Variance", "Std. error"], ans: 0 }
         ]
     },
-
     "Regression Basics": {
         Low: [
-            { q: "Regression predicts:", opts: ["Outcome variable", "Sample size", "Variance", "Random errors"], ans: 0 }
+            { q: "Regression predicts:", opts: ["Outcome variable", "Sample size", "Variance", "Errors"], ans: 0 }
         ],
         Medium: [
-            { q: "Slope represents:", opts: ["Rate of change", "Mean", "Variance", "CI"], ans: 0 }
+            { q: "Slope represents:", opts: ["Rate of change", "Mean", "Median", "CI"], ans: 0 }
         ],
         High: [
-            { q: "Purpose of R²:", opts: ["Explain variability", "Compute slope", "Compute CI", "Test variance"], ans: 0 }
+            { q: "R² is used to:", opts: ["Explain variability", "Compute p-value", "Compute n", "Fix errors"], ans: 0 }
         ]
     },
-
     "Practical Real-World Applications": {
         Low: [
-            { q: "Which field uses statistics?", opts: ["Business", "Cooking", "Music", "Painting"], ans: 0 }
+            { q: "Which field uses statistics?", opts: ["Business", "None", "Only math", "Only art"], ans: 0 }
         ],
         Medium: [
-            { q: "A/B testing is used for:", opts: ["Compare two strategies", "Find CI", "Compute regression", "Estimate variance"], ans: 0 }
+            { q: "A/B testing is used to:", opts: ["Compare two strategies", "Find variance", "Run regression", "Estimate median"], ans: 0 }
         ],
         High: [
-            { q: "Predictive analytics helps by:", opts: ["Forecasting outcomes", "Removing variance", "Reducing errors to zero", "Finding exact parameters"], ans: 0 }
+            { q: "Predictive analytics helps by:", opts: ["Forecasting outcomes", "Removing all errors", "Making variance 0", "Eliminating sampling"], ans: 0 }
         ]
     }
 };
 
 function generateRandomQuestions() {
-
     const topic = document.getElementById("topicSelect").value;
     const level = document.getElementById("levelSelect").value;
     const num = parseInt(document.getElementById("numQuestions").value) || 10;
 
-    const pool = templates[topic][level];
+    const pool = templates[topic] && templates[topic][level];
     if (!pool || pool.length === 0) {
-        alert("No templates available.");
+        alert("No templates for this topic/level.");
         return;
     }
 
-    let uniqueSet = new Set(previewData.map(q => q.question.toLowerCase()));
-    let result = [];
+    let uniqueUsed = new Set(previewData.map(q => q.question.toLowerCase()));
+    let generated = [];
+    let tries = 0;
 
-    for (let i = 0; i < num; i++) {
-        let item;
-        let tries = 0;
-
-        do {
-            item = pool[Math.floor(Math.random() * pool.length)];
-            tries++;
-        } while (uniqueSet.has(item.q.toLowerCase()) && tries < 20);
-
-        uniqueSet.add(item.q.toLowerCase());
-
-        result.push({
-            id: "R" + (previewData.length + result.length + 1),
-            question: item.q,
-            opt1: item.opts[0],
-            opt2: item.opts[1],
-            opt3: item.opts[2],
-            opt4: item.opts[3],
-            answer: item.ans
-        });
+    while (generated.length < num && tries < num * 10) {
+        const item = pool[Math.floor(Math.random() * pool.length)];
+        const key = item.q.toLowerCase();
+        if (!uniqueUsed.has(key)) {
+            uniqueUsed.add(key);
+            generated.push({
+                id: `R${previewData.length + generated.length + 1}`,
+                question: item.q,
+                opt1: item.opts[0],
+                opt2: item.opts[1],
+                opt3: item.opts[2],
+                opt4: item.opts[3],
+                answer: item.ans,
+                topic: topic,
+                level: level
+            });
+        }
+        tries++;
     }
 
-    previewData = previewData.concat(result);
-    renderPreviewTable(previewData);
-    document.getElementById("previewArea").classList.remove("hidden");
-    closeRandomModal();
+    if (generated.length === 0) {
+        alert("No new unique questions could be generated (pool too small).");
+        return;
+    }
 
-    document.getElementById("statusMsg").innerHTML =
-        `✨ Generated ${num} questions for topic <strong>${topic}</strong> (level: ${level}).`;
+    previewData = previewData.concat(generated);
+    renderPreviewTable();
+    document.getElementById("statusMsg").textContent =
+        `✨ Generated ${generated.length} questions for ${topic} (${level}).`;
     document.getElementById("statusMsg").className =
         "text-blue-600 text-center text-lg font-semibold";
+
+    // preview 탭으로 전환
+    document.querySelector('[data-tab="previewTab"]').click();
+}
+</script>
+
+<!-- ========================================================= -->
+<!-- PREVIEW TABLE + INLINE EDIT -->
+<!-- ========================================================= -->
+<script>
+function renderPreviewTable() {
+    const container = document.getElementById("previewArea");
+    if (!previewData.length) {
+        container.innerHTML = `<p class="text-sm text-gray-500">No questions loaded yet.</p>`;
+        return;
+    }
+
+    let html = `
+        <table class="min-w-full border text-xs md:text-sm">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="border px-2 py-1">Use</th>
+                    <th class="border px-2 py-1">#</th>
+                    <th class="border px-2 py-1">ID</th>
+                    <th class="border px-2 py-1">Topic</th>
+                    <th class="border px-2 py-1">Level</th>
+                    <th class="border px-2 py-1 w-[30%]">Question</th>
+                    <th class="border px-2 py-1">Opt1</th>
+                    <th class="border px-2 py-1">Opt2</th>
+                    <th class="border px-2 py-1">Opt3</th>
+                    <th class="border px-2 py-1">Opt4</th>
+                    <th class="border px-2 py-1">Ans(0-3)</th>
+                    <th class="border px-2 py-1">Del</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    previewData.forEach((q, idx) => {
+        html += `
+        <tr class="bg-white">
+            <td class="border px-1 py-1 text-center">
+                <input type="checkbox" class="select-q" data-index="${idx}" checked>
+            </td>
+            <td class="border px-1 py-1 text-center">${idx + 1}</td>
+            <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="id">${q.id || ""}</td>
+            <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="topic">${q.topic || ""}</td>
+            <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="level">${q.level || ""}</td>
+            <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="question">${q.question || ""}</td>
+            <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="opt1">${q.opt1 || ""}</td>
+            <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="opt2">${q.opt2 || ""}</td>
+            <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="opt3">${q.opt3 || ""}</td>
+            <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="opt4">${q.opt4 || ""}</td>
+            <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="answer">${q.answer ?? 0}</td>
+            <td class="border px-1 py-1 text-center">
+                <button class="text-red-600 font-bold text-xs" onclick="deleteQuestion(${idx})">X</button>
+            </td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+// Inline edit handler (event delegation)
+document.getElementById("previewArea").addEventListener("blur", function(e) {
+    const target = e.target;
+    const idx = target.getAttribute("data-index");
+    const field = target.getAttribute("data-field");
+    if (idx === null || field === null) return;
+
+    const value = target.textContent.trim();
+    if (!previewData[idx]) return;
+
+    if (field === "answer") {
+        let num = parseInt(value);
+        if (isNaN(num) || num < 0 || num > 3) num = 0;
+        previewData[idx][field] = num;
+        target.textContent = num;
+    } else {
+        previewData[idx][field] = value;
+    }
+}, true);
+
+function deleteQuestion(index) {
+    if (!confirm("Delete this question?")) return;
+    previewData.splice(index,1);
+    renderPreviewTable();
+}
+
+function addEmptyQuestion() {
+    previewData.push({
+        id: `Q${previewData.length + 1}`,
+        question: "",
+        opt1: "",
+        opt2: "",
+        opt3: "",
+        opt4: "",
+        answer: 0,
+        topic: "",
+        level: ""
+    });
+    renderPreviewTable();
+}
+
+function clearPreview() {
+    if (!confirm("Clear ALL questions in preview?")) return;
+    previewData = [];
+    renderPreviewTable();
+}
+</script>
+
+<!-- ========================================================= -->
+<!-- FIRESTORE UPLOAD (선택 / 전체) + VERSIONING -->
+<!-- ========================================================= -->
+<script>
+async function uploadSelectedQuestions() {
+    if (!previewData.length) {
+        alert("No questions loaded.");
+        return;
+    }
+    const selected = [];
+    document.querySelectorAll(".select-q").forEach(cb => {
+        if (cb.checked) {
+            const idx = parseInt(cb.dataset.index);
+            selected.push(previewData[idx]);
+        }
+    });
+    if (!selected.length) {
+        alert("No questions selected.");
+        return;
+    }
+    await saveQuestionsToFirestore(selected);
+}
+
+async function uploadAllQuestions() {
+    if (!previewData.length) {
+        alert("No questions loaded.");
+        return;
+    }
+    await saveQuestionsToFirestore(previewData);
+}
+
+async function saveQuestionsToFirestore(list) {
+    const docId = document.getElementById("docIdInput").value.trim() || "current";
+    const questions = list.map(q => ({
+        id: q.id || "",
+        text: q.question || "",
+        options: [q.opt1 || "", q.opt2 || "", q.opt3 || "", q.opt4 || ""],
+        answer: typeof q.answer === "number" ? q.answer : parseInt(q.answer || 0),
+        topic: q.topic || "",
+        level: q.level || ""
+    }));
+
+    const count = questions.length;
+    const versionKey = new Date().toISOString().replace(/[-:T.Z]/g, "").slice(0,14);
+
+    try {
+        await db.collection("exam_questions").doc(docId).set({
+            questions,
+            count,
+            updatedAt: new Date().toISOString()
+        });
+
+        await db.collection("exam_questions")
+                .doc("versions")
+                .collection("history")
+                .doc(`${docId}_${versionKey}`)
+                .set({
+                    docId,
+                    questions,
+                    count,
+                    savedAt: new Date().toISOString()
+                });
+
+        downloadBackupJSON(questions, docId, versionKey);
+
+        document.getElementById("statusMsg").innerHTML =
+            `✅ Uploaded ${count} questions to <span class="font-mono">${docId}</span>. Version <span class="font-mono">${docId}_${versionKey}</span> saved.`;
+        document.getElementById("statusMsg").className =
+            "text-green-600 text-center text-lg font-semibold";
+    } catch(err) {
+        console.error(err);
+        alert("Upload failed.");
+    }
+}
+
+function downloadBackupJSON(questions, docId, versionKey) {
+    const blob = new Blob([JSON.stringify(questions, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `backup_${docId}_${versionKey}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
 }
 </script>
 
