@@ -817,56 +817,45 @@ Given p = {randomPValue}:
         // ============================================
         // 문제 렌더링
         // ============================================
-        function renderQuestions() {
-            const container = document.getElementById('questionsContainer');
-            container.innerHTML = '';
-            
-            questions.forEach((q, index) => {
-                const questionDiv = document.createElement('div');
-                questionDiv.className = 'bg-white rounded-lg shadow-lg p-6';
-                
-                // 난이도 이모지
-                const difficultyEmoji = {
-                    'easy': '😊',
-                    'medium': '🤔',
-                    'hard': '😰'
-                };
-                
-                let questionText = replaceVariables(q.questionText, studentData);
-                
-                // 차트 이미지 삽입
-                let chartHtml = '';
-                if (q.chartType) {
-                    const chartImage = generateChartImage(q.chartType, studentData);
-                    chartHtml = `
-                        <div class="chart-container">
-                            <img src="${chartImage}" alt="Chart">
-                        </div>
-                    `;
-                }
-                
-                questionDiv.innerHTML = `
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-bold text-gray-800">
-                            ${index + 1}. ${q.questionId || ''}
-                            <span class="text-2xl ml-2">${difficultyEmoji[q.difficulty] || '📝'}</span>
-                        </h3>
-                        <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
-                            ${q.points}점
-                        </span>
-                    </div>
-                    <div class="mb-4 text-gray-700 leading-relaxed">
-                        ${questionText}
-                    </div>
-                    ${chartHtml}
-                    <div class="mt-4">
-                        ${renderAnswerInput(q, index)}
-                    </div>
-                `;
-                
-                container.appendChild(questionDiv);
-            });
-        }
+       let currentQuestionIndex = 0;
+let questionTimer = null;
+const perQuestionLimit = 80; // 80 seconds per question
+
+function renderCurrentQuestion() {
+    const container = document.getElementById('questionsContainer');
+    container.innerHTML = "";
+
+    const q = questions[currentQuestionIndex];
+    if (!q) {
+        submitExam();
+        return;
+    }
+
+    let questionText = replaceVariables(q.questionText, studentData);
+
+    container.innerHTML = `
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-bold mb-3">
+                Question ${currentQuestionIndex + 1} / ${questions.length}
+            </h3>
+
+            <div class="mb-4 text-gray-700 leading-relaxed">
+                ${questionText}
+            </div>
+
+            <div class="mt-4">
+                ${renderAnswerInput(q, currentQuestionIndex)}
+            </div>
+
+            <div class="mt-6 text-right text-sm text-gray-600">
+                ⏳ This question expires in 
+                <span id="questionTimer" class="text-red-600 font-bold">80</span> seconds
+            </div>
+        </div>
+    `;
+
+    startQuestionTimer();
+}
 
         function renderAnswerInput(question, index) {
             const type = question.type;
@@ -894,29 +883,46 @@ Given p = {randomPValue}:
         // ============================================
         // 타이머
         // ============================================
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - examStartTime) / 1000);
-                const remaining = timeLimit - elapsed;
-                
-                if (remaining <= 0) {
-                    clearInterval(timerInterval);
-                    alert('시험 시간이 종료되었습니다!');
-                    submitExam();
-                    return;
-                }
-                
-                const minutes = Math.floor(remaining / 60);
-                const seconds = remaining % 60;
-                const timerElement = document.getElementById('timer');
-                timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                
-                // 1분 미만 경고
-                if (remaining < 60) {
-                    timerElement.classList.add('timer-warning', 'text-red-600');
-                }
-            }, 1000);
+ // ============================================
+// 문항 타이머 (80초) → 자동 다음 문항
+// ============================================
+function startQuestionTimer() {
+    let remain = perQuestionLimit;
+    clearInterval(questionTimer);
+
+    questionTimer = setInterval(() => {
+        remain--;
+        document.getElementById('questionTimer').textContent = remain;
+
+        if (remain <= 0) {
+            clearInterval(questionTimer);
+            moveToNextQuestion();
         }
+    }, 1000);
+}
+
+function moveToNextQuestion() {
+    saveCurrentAnswer();
+    currentQuestionIndex++;
+
+    if (currentQuestionIndex >= questions.length) {
+        submitExam();
+    } else {
+        renderCurrentQuestion();
+    }
+}
+
+function saveCurrentAnswer() {
+    const q = questions[currentQuestionIndex];
+    const ansBox = document.getElementById(`answer_${currentQuestionIndex}`);
+    if (!q || !ansBox) return;
+
+    answers[currentQuestionIndex] = {
+        questionId: q.questionId,
+        answer: ansBox.value || "",
+        points: q.points
+    };
+}
 
         // ============================================
         // 시험 제출
