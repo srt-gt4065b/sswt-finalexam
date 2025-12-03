@@ -2,45 +2,77 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin – Upload MCQ Questions</title>
+    <title>Admin – MCQ Question Manager (CSV + Tools)</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
 </head>
 
-<body class="bg-gray-100 min-h-screen p-8">
+<body class="bg-gray-100 min-h-screen p-10">
 
-<div class="max-w-4xl mx-auto bg-white p-8 shadow-2xl rounded-2xl">
+<div class="max-w-5xl mx-auto bg-white p-10 rounded-2xl shadow-xl">
 
-    <h1 class="text-3xl font-bold text-center text-purple-600 mb-6">
-        Admin – Upload MCQ (4-choice) Questions
+    <h1 class="text-4xl font-bold text-center text-purple-600 mb-8">
+        Admin – MCQ Question Manager
     </h1>
 
-    <p class="text-gray-600 mb-6 text-center">
-        Enter <strong>10 multiple-choice questions</strong>.  
-        Each question requires:  
-        - Question text  
-        - 4 choices  
-        - Correct answer selection
-    </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
 
-    <div id="questionForms" class="space-y-10"></div>
+        <!-- CSV Upload -->
+        <div class="border rounded-xl p-6 bg-gray-50">
+            <h2 class="text-xl font-bold mb-4 text-purple-700">Upload Questions via CSV</h2>
+            <input id="csvFile" type="file" accept=".csv"
+                   class="w-full border p-3 rounded bg-white shadow-sm">
+            <button onclick="previewCSV()"
+                    class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold">
+                Preview CSV
+            </button>
+            <button onclick="uploadCSV()"
+                    class="mt-3 w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-bold">
+                Upload to Firestore
+            </button>
+        </div>
 
-    <div class="text-center mt-10">
-        <button onclick="uploadQuestions()"
-                class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-10 py-4 rounded-xl shadow-lg transition">
-            Upload to Firestore
-        </button>
+        <!-- Tools -->
+        <div class="border rounded-xl p-6 bg-gray-50">
+            <h2 class="text-xl font-bold mb-4 text-purple-700">Tools</h2>
+
+            <!-- Download example -->
+            <button onclick="downloadExampleCSV()"
+                    class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold mb-3">
+                Download Example CSV
+            </button>
+
+            <!-- Generate random questions -->
+            <button onclick="generateRandomQuestions()"
+                    class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-bold mb-3">
+                Generate Random Questions
+            </button>
+
+            <!-- Clear preview -->
+            <button onclick="clearPreview()"
+                    class="w-full bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-bold">
+                Clear Preview
+            </button>
+        </div>
     </div>
 
-    <p id="statusMsg" class="text-center mt-6 text-lg font-semibold"></p>
+    <!-- Preview Area -->
+    <div id="previewArea" class="hidden mt-10">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">CSV Preview</h2>
+        <div id="previewTable" class="overflow-auto border rounded-xl p-4 bg-gray-50"></div>
+    </div>
+
+    <p id="statusMsg" class="text-center mt-6 text-xl font-semibold"></p>
 
 </div>
-
-
+<!-- ========================= -->
+<!-- FIREBASE INITIALIZATION -->
+<!-- ========================= -->
 <script>
-// FIREBASE INIT
 const firebaseConfig = {
     apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
     authDomain: "sswt-final.firebaseapp.com",
@@ -51,91 +83,280 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+</script>
 
 
-// CREATE 10 QUESTION BLOCKS
-function createForms() {
-    const container = document.getElementById("questionForms");
+<!-- ========================= -->
+<!-- CSV PARSER -->
+<!-- ========================= -->
+<script>
+// Convert CSV text → array of objects
+function parseCSV(text) {
+    const lines = text.trim().split("\n");
+    const headers = lines[0].split(",").map(h => h.trim());
 
-    for (let i = 1; i <= 10; i++) {
-        const block = document.createElement("div");
-        block.className = "border rounded-xl p-6 shadow";
+    return lines.slice(1).map(line => {
+        let cols = line.split(",").map(c => c.trim());
+        let obj = {};
+        headers.forEach((h, i) => obj[h] = cols[i]);
+        return obj;
+    });
+}
+</script>
 
-        block.innerHTML = `
-            <h2 class="text-xl font-bold mb-4 text-purple-700">Question ${i}</h2>
 
-            <textarea id="q${i}_text"
-                      class="w-full p-3 border rounded mb-4"
-                      placeholder="Enter question text..."></textarea>
+<!-- ========================= -->
+<!-- PREVIEW CSV TABLE -->
+<!-- ========================= -->
+<script>
+let previewData = [];
 
-            <div class="space-y-3">
-                <input id="q${i}_opt1" class="w-full p-2 border rounded" placeholder="Option 1">
-                <input id="q${i}_opt2" class="w-full p-2 border rounded" placeholder="Option 2">
-                <input id="q${i}_opt3" class="w-full p-2 border rounded" placeholder="Option 3">
-                <input id="q${i}_opt4" class="w-full p-2 border rounded" placeholder="Option 4">
-            </div>
+function previewCSV() {
+    const fileInput = document.getElementById("csvFile");
+    const file = fileInput.files[0];
 
-            <div class="mt-4">
-                <label class="font-semibold">Correct Answer:</label>
-                <select id="q${i}_answer" class="ml-2 p-2 border rounded">
-                    <option value="0">Option 1</option>
-                    <option value="1">Option 2</option>
-                    <option value="2">Option 3</option>
-                    <option value="3">Option 4</option>
-                </select>
-            </div>
-        `;
-
-        container.appendChild(block);
+    if (!file) {
+        alert("Please select a CSV file.");
+        return;
     }
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            previewData = parseCSV(e.target.result);
+            renderPreviewTable(previewData);
+        } catch (err) {
+            alert("CSV format error.");
+            console.error(err);
+        }
+    };
+    reader.readAsText(file);
 }
 
-createForms();
 
+// Render preview table
+function renderPreviewTable(data) {
+    const area = document.getElementById("previewArea");
+    const tbl = document.getElementById("previewTable");
 
-// UPLOAD FUNCTION
-async function uploadQuestions() {
-    let questionList = [];
-
-    for (let i = 1; i <= 10; i++) {
-        const text = document.getElementById(`q${i}_text`).value.trim();
-        const opt1 = document.getElementById(`q${i}_opt1`).value.trim();
-        const opt2 = document.getElementById(`q${i}_opt2`).value.trim();
-        const opt3 = document.getElementById(`q${i}_opt3`).value.trim();
-        const opt4 = document.getElementById(`q${i}_opt4`).value.trim();
-        const ans = document.getElementById(`q${i}_answer`).value;
-
-        if (!text || !opt1 || !opt2 || !opt3 || !opt4) {
-            alert(`Please fill all fields for Question ${i}`);
-            return;
-        }
-
-        questionList.push({
-            id: "Q" + i,
-            text: text,
-            options: [opt1, opt2, opt3, opt4],
-            answer: parseInt(ans)
-        });
+    if (data.length === 0) {
+        tbl.innerHTML = "<p>No data found.</p>";
+        return;
     }
 
+    let html = `
+        <table class="min-w-full border text-sm">
+            <thead>
+                <tr class="bg-gray-200">
+                    ${Object.keys(data[0]).map(k => `<th class="border px-3 py-2">${k}</th>`).join("")}
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    data.forEach(row => {
+        html += `
+        <tr>
+            ${Object.values(row).map(v => `<td class="border px-3 py-2">${v}</td>`).join("")}
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+
+    tbl.innerHTML = html;
+    area.classList.remove("hidden");
+}
+
+
+// Clear preview table
+function clearPreview() {
+    previewData = [];
+    document.getElementById("previewArea").classList.add("hidden");
+    document.getElementById("previewTable").innerHTML = "";
+}
+</script>
+<!-- ========================= -->
+<!-- FIRESTORE UPLOAD + VERSIONING + BACKUP DOWNLOAD -->
+<!-- ========================= -->
+<script>
+async function uploadCSV() {
+    if (previewData.length === 0) {
+        alert("Please preview a CSV before uploading.");
+        return;
+    }
+
+    // Convert previewData → Firestore MCQ structure
+    const questions = previewData.map(row => ({
+        id: row.id,
+        text: row.question,
+        options: [row.opt1, row.opt2, row.opt3, row.opt4],
+        answer: parseInt(row.answer)
+    }));
+
+    const count = questions.length;
+    const timestamp = new Date();
+    const versionKey = timestamp.toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);  
+    // Format: 20241205103355
+
     try {
+        /* 1) Save to "current" version */
         await db.collection("exam_questions")
                 .doc("current")
                 .set({
-                    questions: questionList,
-                    count: questionList.length
+                    questions: questions,
+                    count: count,
+                    updatedAt: new Date().toISOString()
                 });
 
+        /* 2) Save backup into versions/ */
+        await db.collection("exam_questions")
+                .doc("versions")
+                .collection("history")
+                .doc(versionKey)
+                .set({
+                    questions: questions,
+                    count: count,
+                    savedAt: new Date().toISOString()
+                });
+
+        /* 3) Download local backup JSON */
+        downloadBackupJSON(questions, versionKey);
+
+        // Status
         const msg = document.getElementById("statusMsg");
-        msg.innerHTML = "✅ Successfully uploaded 10 MCQ questions!";
-        msg.className = "text-green-600 text-center mt-6 text-lg font-semibold";
+        msg.innerHTML = `✅ Successfully uploaded ${count} questions.<br>
+                         Backup saved as version ${versionKey}.`;
+        msg.className = "text-green-600 text-center text-xl font-semibold";
 
     } catch (err) {
         console.error(err);
         const msg = document.getElementById("statusMsg");
         msg.innerHTML = "❌ Upload failed. Check console.";
-        msg.className = "text-red-600 text-center mt-6 text-lg font-semibold";
+        msg.className = "text-red-600 text-center text-xl font-semibold";
     }
+}
+
+
+/* ========================= */
+/* BACKUP JSON AUTO DOWNLOAD */
+/* ========================= */
+function downloadBackupJSON(questions, versionKey) {
+    const dataStr = JSON.stringify(questions, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `backup_${versionKey}.json`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+</script>
+<!-- ========================= -->
+<!-- RANDOM QUESTION GENERATOR -->
+<!-- ========================= -->
+<script>
+function generateRandomQuestions() {
+    const count = prompt("How many questions to generate? (e.g., 20, 50, 100)");
+    const n = parseInt(count);
+
+    if (!n || n <= 0) {
+        alert("Invalid number.");
+        return;
+    }
+
+    const conceptPool = [
+        {
+            q: "What is the definition of variance?",
+            opts: ["Measure of spread", "Measure of center", "Error term", "Estimator"],
+            ans: 0
+        },
+        {
+            q: "What is a sampling distribution?",
+            opts: ["Distribution of sample statistics", "Raw data values", "Distribution of errors", "Population histogram"],
+            ans: 0
+        },
+        {
+            q: "What is a p-value?",
+            opts: ["Probability under null hypothesis", "Mean difference", "Variance of sample", "Confidence level"],
+            ans: 0
+        },
+        {
+            q: "Define standard deviation.",
+            opts: ["Square root of variance", "Average of data", "Median of data", "Error term"],
+            ans: 0
+        },
+        {
+            q: "What is Type I error?",
+            opts: ["Rejecting true null", "Failing to reject false null", "Wrong mean calculation", "Sampling error"],
+            ans: 0
+        },
+        {
+            q: "What is Type II error?",
+            opts: ["Failing to reject false null", "Rejecting true null", "Bias in estimator", "Sampling error"],
+            ans: 0
+        },
+        {
+            q: "What is the central limit theorem?",
+            opts: ["Sample means → normal distribution", "Population always normal", "Means always equal", "Variance always constant"],
+            ans: 0
+        },
+        {
+            q: "What is a confidence interval?",
+            opts: ["Range estimating parameter", "Distribution of errors", "Histogram of data", "Variance estimator"],
+            ans: 0
+        }
+    ];
+
+    let generated = [];
+
+    for (let i = 1; i <= n; i++) {
+        const item = conceptPool[Math.floor(Math.random() * conceptPool.length)];
+        generated.push({
+            id: "Q" + i,
+            question: item.q,
+            opt1: item.opts[0],
+            opt2: item.opts[1],
+            opt3: item.opts[2],
+            opt4: item.opts[3],
+            answer: item.ans
+        });
+    }
+
+    previewData = generated; 
+    renderPreviewTable(previewData);
+
+    document.getElementById("previewArea").classList.remove("hidden");
+
+    document.getElementById("statusMsg").textContent =
+        `✨ Generated ${n} random concept questions.`;
+    document.getElementById("statusMsg").className =
+        "text-blue-600 text-center text-lg font-semibold";
+}
+</script>
+<!-- ========================= -->
+<!-- DOWNLOAD EXAMPLE CSV -->
+<!-- ========================= -->
+<script>
+function downloadExampleCSV() {
+    const sample = 
+`id,question,opt1,opt2,opt3,opt4,answer
+Q1,What is variance?,Measure of spread,Mean value,P-value,Estimator,0
+Q2,Which is a probability distribution?,Normal,Matrix,Derivative,Integral,0
+Q3,Define p-value.,Probability under null,Mean difference,Error rate,Slope,0
+Q4,What is a sampling distribution?,Distribution of sample statistics,Raw data values,Population values,Error distribution,0
+Q5,What is Type I error?,Reject true null,Accept true null,Wrong variance,Low sample size,0`;
+
+    const blob = new Blob([sample], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "example_questions.csv";
+    a.click();
+
+    URL.revokeObjectURL(url);
 }
 </script>
 
