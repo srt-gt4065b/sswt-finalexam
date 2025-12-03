@@ -59,6 +59,58 @@
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
+    <!-- Instruction Modal -->
+<div id="instructionModal"
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-6 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 animate-fadeIn">
+
+        <h2 class="text-3xl font-bold text-purple-600 mb-4 text-center">
+            📘 Statistics Challenge 2025 – Instructions
+        </h2>
+
+        <p class="text-gray-700 leading-relaxed mb-4">
+            Before starting the exam, please confirm that you have fully read and understood the exam rules.
+        </p>
+
+        <div class="border-l-4 border-purple-400 bg-purple-50 p-4 rounded-lg mb-6">
+            <ul class="list-disc ml-5 text-gray-700 space-y-1 text-sm">
+                <li>100 concept questions</li>
+                <li>20 seconds per question</li>
+                <li>Total exam time: 33m 20s</li>
+                <li>No retakes under any circumstances</li>
+                <li>One question per screen, automatic movement</li>
+                <li>Exam available Dec 5 (9:00 AM) – Dec 9 (9:00 PM)</li>
+            </ul>
+        </div>
+
+        <div class="flex items-center gap-2 mb-6">
+            <input id="agreeCheck" type="checkbox" class="w-5 h-5 text-purple-600">
+            <label for="agreeCheck" class="text-gray-800 text-sm font-medium">
+                I have read and fully understand the exam instructions.
+            </label>
+        </div>
+
+        <div class="text-center">
+            <button id="closeInstructionBtn"
+                    disabled
+                    class="bg-gray-400 cursor-not-allowed text-white font-bold px-8 py-3 rounded-xl transition duration-200"
+            >
+                Start Exam
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.animate-fadeIn {
+  animation: fadeIn .4s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
     <!-- 로그인 화면 -->
     <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
