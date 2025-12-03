@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics Challenge 2025</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* 삼성 헬스 스타일 그라디언트 */
+        .health-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        /* 프로그레스 바 애니메이션 */
+        @keyframes fillProgress {
+            from { width: 0%; }
+        }
+        
+        .progress-fill {
+            animation: fillProgress 1s ease-out;
+        }
+        
+        /* 레벨 뱃지 */
+        .level-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        /* 타이머 깜빡임 */
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.5; }
+        }
+        
+        .timer-warning {
+            animation: blink 1s infinite;
+        }
+        
+        /* 차트 이미지 스타일 (현재는 사용 안 하지만 남겨둠) */
+        .chart-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .chart-container img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- 로그인 화면 -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold mb-2 health-gradient bg-clip-text text-transparent">
+                    Statistics Challenge
+                </h1>
+                <p class="text-gray-600">2025 통계학 온라인 시험</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">이름</label>
+                    <input type="text" id="studentName" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                           placeholder="홍길동">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">학번</label>
+                    <input type="text" id="studentId" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                           placeholder="20241234">
+                </div>
+                
+                <div class="flex gap-3">
+                    <button onclick="startExam('practice')" 
+                            class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
+                        연습 모드 시작
+                    </button>
+                    <button onclick="startExam('real')" 
+                            class="flex-1 health-gradient text-white font-bold py-3 px-6 rounded-lg hover:opacity-90 transition duration-200">
+                        실전 시험 시작
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mt-6 text-center text-sm text-gray-500">
+                <p>💡 연습 모드: 무제한 재응시 가능</p>
+                <p>🎯 실전 모드: 1회 응시 제한</p>
+            </div>
+            
+            <div class="mt-6 text-center">
+                <button onclick="viewMyData()" 
+                        class="text-purple-600 hover:text-purple-700 font-semibold text-sm underline">
+                    📊 내 개인화 데이터 확인하기
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 시험 화면 -->
+    <div id="examScreen" class="hidden min-h-screen p-4">
+        <!-- 헤더 -->
+        <div class="bg-white rounded-lg shadow-lg p-4 mb-4 sticky top-4 z-10">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold" id="studentInfo"></h2>
+                    <p class="text-sm text-gray-600" id="modeInfo"></p>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-500 mb-1">⏱ 전체 시험 시간 (40분)</div>
+                    <div class="text-3xl font-bold text-purple-600" id="timer">40:00</div>
+                    <p class="text-xs text-gray-500 mt-1">각 문항 제한시간: 80초</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 문제 영역 (한 화면에 한 문제) -->
+        <div id="questionsContainer" class="mb-6"></div>
+        
+        <!-- 제출 버튼 (원하면 중간 제출 가능) -->
+        <div class="text-center mb-8">
+            <button onclick="manualSubmit()" 
+                    class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-200">
+                지금까지 푼 답안 제출하기
+            </button>
+        </div>
+    </div>
+    
+    <!-- 내 데이터 확인 모달 -->
+    <div id="myDataModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-purple-600">📊 내 개인화 데이터</h2>
+                <button onclick="closeMyDataModal()" 
+                        class="text-gray-500 hover:text-gray-700 text-3xl leading-none">
+                    ×
+                </button>
+            </div>
+            
+            <div id="myDataContent"></div>
+            
+            <div class="flex gap-3 mt-6">
+                <button onclick="downloadMyDataCSV()" 
+                        class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
+                    📥 CSV 다운로드
+                </button>
+                <button onclick="closeMyDataModal()" 
+                        class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 결과 화면 -->
+    <div id="resultScreen" class="hidden min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4">🎉</div>
+                <h2 class="text-3xl font-bold mb-2">시험 완료!</h2>
+                <p class="text-gray-600">수고하셨습니다</p>
+            </div>
+            
+            <div id="resultContent" class="space-y-4"></div>
+            
+            <div class="text-center mt-8">
+                <button onclick="location.reload()" 
+                        class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg transition duration-200">
+                    처음으로 돌아가기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // Firebase 설정
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
+            authDomain: "sswt-final.firebaseapp.com",
+            projectId: "sswt-final",
+            storageBucket: "sswt-final.firebasestorage.app",
+            messagingSenderId: "824707188580",
+            appId: "1:824707188580:web:747ba4d91ab781e1a15c71",
+            measurementId: "G-VKYGVZCS2T"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ============================================
+        // 전역 변수
+        // ============================================
+        let currentMode = '';
+        let studentData = {};
+        let questions = [];
+        let examStartTime = null;
+        let timerInterval = null;
+        let timeLimit = 0; // 전체 시험 시간(초)
+        
+        // 한 화면 한 문제용
+        let currentQuestionIndex = 0;
+        let questionTimer = null;
+        const perQuestionLimit = 80; // 개별 문항 80초
+        let answers = []; // 각 문항 답안 저장용
+
+        // ============================================
+        // Seed Random (학번 기반 난수 생성)
+        // ============================================
+        function seedRandom(seed) {
+            let x = Math.sin(seed++) * 10000;
+            return x - Math.floor(x);
+        }
+
+        // ============================================
+        // 학생 데이터 생성 (개인화)
+        // ============================================
+        function generateStudentData(studentId) {
+            const seed = parseInt(studentId) || 12345;
+            const scores = [];
+            
+            // 20회 Galaga 플레이 점수 생성
+            for (let i = 0; i < 20; i++) {
+                const score = Math.floor(seedRandom(seed + i) * 50000) + 10000;
+                scores.push(score);
+            }
+            
+            const first5 = scores.slice(0, 5);
+            const last5 = scores.slice(15, 20);
+            const sum = scores.reduce((a, b) => a + b, 0);
+            const avg = sum / scores.length;
+            const variance = scores.reduce((sum, score) => sum + Math.pow(score - avg, 2), 0) / scores.length;
+            const stdDev = Math.sqrt(variance);
+            
+            return {
+                scores: scores,
+                first5Scores: first5.join(', '),
+                last5Scores: last5.join(', '),
+                first5Avg: (first5.reduce((a, b) => a + b, 0) / 5).toFixed(2),
+                last5Avg: (last5.reduce((a, b) => a + b, 0) / 5).toFixed(2),
+                maxScore: Math.max(...scores),
+                minScore: Math.min(...scores),
+                avgScore: avg.toFixed(2),
+                stdDev: stdDev.toFixed(2),
+                randomNum1: Math.floor(seedRandom(seed + 100) * 300) + 600,
+                randomNum2: Math.floor(seedRandom(seed + 200) * 100) + 150,
+                randomNum3: Math.floor(seedRandom(seed + 300) * 50) + 20,
+                randomPValue: (seedRandom(seed + 400) * 0.1).toFixed(3)
+            };
+        }
+
+        // ============================================
+        // 변수 치환
+        // ============================================
+        function replaceVariables(text, data) {
+            if (!text) return text;
+            let result = text;
+            Object.keys(data).forEach(key => {
+                const regex = new RegExp(`\\{${key}\\}`, 'g');
+                result = result.replace(regex, data[key]);
+            });
+            return result;
+        }
+
+        // ============================================
+        // 내 데이터 확인
+        // ============================================
+        function viewMyData() {
+            const name = document.getElementById('studentName').value.trim();
+            const id = document.getElementById('studentId').value.trim();
+            
+            if (!name || !id) {
+                alert('이름과 학번을 먼저 입력하세요.');
+                return;
+            }
+            
+            const data = generateStudentData(id);
+            
+            document.getElementById('myDataModal').classList.remove('hidden');
+            
+            const content = document.getElementById('myDataContent');
+            content.innerHTML = `
+                <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 rounded-lg mb-6">
+                    <h3 class="text-2xl font-bold mb-2">${name} (${id})</h3>
+                    <p class="text-lg">개인화된 Galaga 게임 데이터</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-blue-900 mb-2">📈 통계 요약</h4>
+                        <div class="space-y-2 text-sm">
+                            <p><span class="font-semibold">최고 점수:</span> ${data.maxScore.toLocaleString()}</p>
+                            <p><span class="font-semibold">최저 점수:</span> ${data.minScore.toLocaleString()}</p>
+                            <p><span class="font-semibold">평균 점수:</span> ${Number(data.avgScore).toLocaleString()}</p>
+                            <p><span class="font-semibold">표준편차:</span> ${Number(data.stdDev).toLocaleString()}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-green-900 mb-2">🎮 구간별 평균</h4>
+                        <div class="space-y-2 text-sm">
+                            <p><span class="font-semibold">처음 5회 평균:</span> ${Number(data.first5Avg).toLocaleString()}</p>
+                            <p><span class="font-semibold">마지막 5회 평균:</span> ${Number(data.last5Avg).toLocaleString()}</p>
+                            <p><span class="font-semibold">실력 변화:</span> ${(Number(data.last5Avg) - Number(data.first5Avg)).toFixed(2)}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-purple-900 mb-2">🎲 난수 데이터</h4>
+                        <div class="space-y-2 text-sm">
+                            <p><span class="font-semibold">randomNum1:</span> ${data.randomNum1}</p>
+                            <p><span class="font-semibold">randomNum2:</span> ${data.randomNum2}</p>
+                            <p><span class="font-semibold">randomNum3:</span> ${data.randomNum3}</p>
+                            <p><span class="font-semibold">randomPValue:</span> ${data.randomPValue}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-yellow-900 mb-2">ℹ️ 사용 안내</h4>
+                        <div class="space-y-2 text-sm text-yellow-800">
+                            <p>문제에서 {avgScore} 같은 변수가 있으면 위의 값으로 자동 치환됩니다.</p>
+                            <p class="mt-2 font-semibold">예: "평균은 {avgScore}입니다"<br>→ "평균은 ${data.avgScore}입니다"</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-900 mb-3">🎯 전체 20회 플레이 점수</h4>
+                    <div class="grid grid-cols-4 md:grid-cols-5 gap-2 text-sm">
+                        ${data.scores.map((score, i) => `
+                            <div class="bg-white p-2 rounded text-center border ${i < 5 ? 'border-green-300' : i >= 15 ? 'border-blue-300' : 'border-gray-200'}">
+                                <div class="text-xs text-gray-500">#${i + 1}</div>
+                                <div class="font-semibold">${score.toLocaleString()}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="mt-3 text-xs text-gray-600">
+                        <span class="inline-block px-2 py-1 bg-green-100 border border-green-300 rounded mr-2">처음 5회</span>
+                        <span class="inline-block px-2 py-1 bg-blue-100 border border-blue-300 rounded">마지막 5회</span>
+                    </div>
+                </div>
+                
+                <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded mt-4">
+                    <h4 class="font-bold text-orange-900 mb-2">💡 사용 가능한 변수</h4>
+                    <div class="text-sm text-orange-800 space-y-1">
+                        <code class="bg-white px-2 py-1 rounded">{maxScore}</code>
+                        <code class="bg-white px-2 py-1 rounded">{minScore}</code>
+                        <code class="bg-white px-2 py-1 rounded">{avgScore}</code>
+                        <code class="bg-white px-2 py-1 rounded">{stdDev}</code><br>
+                        <code class="bg-white px-2 py-1 rounded">{first5Avg}</code>
+                        <code class="bg-white px-2 py-1 rounded">{last5Avg}</code>
+                        <code class="bg-white px-2 py-1 rounded">{first5Scores}</code>
+                        <code class="bg-white px-2 py-1 rounded">{last5Scores}</code><br>
+                        <code class="bg-white px-2 py-1 rounded">{randomNum1}</code>
+                        <code class="bg-white px-2 py-1 rounded">{randomNum2}</code>
+                        <code class="bg-white px-2 py-1 rounded">{randomNum3}</code>
+                        <code class="bg-white px-2 py-1 rounded">{randomPValue}</code>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function closeMyDataModal() {
+            document.getElementById('myDataModal').classList.add('hidden');
+        }
+        
+        function downloadMyDataCSV() {
+            const name = document.getElementById('studentName').value.trim();
+            const id = document.getElementById('studentId').value.trim();
+            const data = generateStudentData(id);
+            
+            let csv = '항목,값\n';
+            csv += `학번,${id}\n`;
+            csv += `이름,${name}\n`;
+            csv += `최고점수,${data.maxScore}\n`;
+            csv += `최저점수,${data.minScore}\n`;
+            csv += `평균점수,${data.avgScore}\n`;
+            csv += `표준편차,${data.stdDev}\n`;
+            csv += `처음5회평균,${data.first5Avg}\n`;
+            csv += `마지막5회평균,${data.last5Avg}\n`;
+            csv += `randomNum1,${data.randomNum1}\n`;
+            csv += `randomNum2,${data.randomNum2}\n`;
+            csv += `randomNum3,${data.randomNum3}\n`;
+            csv += `randomPValue,${data.randomPValue}\n`;
+            csv += '\n시도,점수\n';
+            data.scores.forEach((score, i) => {
+                csv += `${i + 1},${score}\n`;
+            });
+            
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${name}_${id}_data.csv`;
+            link.click();
+            
+            alert('CSV 파일이 다운로드되었습니다!');
+        }
+
+        // ============================================
+        // 하드코딩 문제 로드 (practice / real 공통)
+        // ============================================
+        async function loadQuestionsFromFirebase(mode) {
+            const fixedTimeLimit = 2400; // 40분
+
+            const hardcodedQuestions = [
+                {
+                    questionId: "Q1",
+                    questionText: `
+You are given the following 20 Galaga scores generated from your student ID:
+
+Scores: {scores}
+
+1) Extract only the odd-indexed attempts (1st, 3rd, 5th, …).  
+2) From those values, keep only the scores greater than your student ID’s last digit.  
+3) Compute the sample mean of the remaining values.  
+4) Round to two decimals.
+                    `,
+                    type: "short",
+                    difficulty: "medium",
+                    points: 10
+                },
+                {
+                    questionId: "Q2",
+                    questionText: `
+Using the same 20 scores:
+
+1) Split the 20 scores into four groups of five.  
+2) From each group, take the middle value (the 3rd score).  
+3) From these four selected values, keep only the ones greater than {avgScore}.  
+4) Compute the sample variance.  
+5) Round to two decimals.
+                    `,
+                    type: "short",
+                    difficulty: "hard",
+                    points: 10
+                },
+                {
+                    questionId: "Q3",
+                    questionText: `
+Using the full 20-score dataset:
+
+1) Keep all values between {minScore} and {maxScore}, inclusive.  
+2) From these, select only those for which (value mod 3) = 2.  
+3) Compute the median of the selected values.
+                    `,
+                    type: "short",
+                    difficulty: "medium",
+                    points: 10
+                },
+                {
+                    questionId: "Q4",
+                    questionText: `
+Using your first 10 attempts:
+
+X = attempts 1 to 10  
+Y = the first 10 values from {scores}
+
+1) Use only attempts whose score is greater than {first5Avg}.  
+2) Compute the slope β₁ of the regression line predicting:
+   Score = β₀ + β₁(Attempt)
+3) Round β₁ to three decimals.
+                    `,
+                    type: "short",
+                    difficulty: "hard",
+                    points: 10
+                },
+                {
+                    questionId: "Q5",
+                    questionText: `
+Using attempts 11–20:
+
+1) Compute their sample mean.  
+2) Compare it to the value {randomNum1}.  
+3) Answer:
+   (a) the mean  
+   (b) whether it is "Higher", "Lower", or "Equal" to {randomNum1}.
+                    `,
+                    type: "short",
+                    difficulty: "easy",
+                    points: 10
+                },
+                {
+                    questionId: "Q6",
+                    questionText: `
+Let d be the last digit of your student ID.
+
+1) From all 20 scores, keep only the values ≥ d × 1000.  
+2) Compute the sample standard deviation.  
+3) Round to two decimals.
+                    `,
+                    type: "short",
+                    difficulty: "medium",
+                    points: 10
+                },
+                {
+                    questionId: "Q7",
+                    questionText: `
+Using the full score list:
+
+1) Select scores greater than {avgScore}.  
+2) From those, keep only values whose digit-sum is even.  
+3) Report how many values remain.
+                    `,
+                    type: "short",
+                    difficulty: "easy",
+                    points: 10
+                },
+                {
+                    questionId: "Q8",
+                    questionText: `
+Using attempts 6–15:
+
+1) Select only scores within ±{stdDev} of {avgScore}.  
+2) From those, keep only scores whose attempt number is prime.  
+3) Compute the range (max – min) of the selected values.
+                    `,
+                    type: "short",
+                    difficulty: "hard",
+                    points: 10
+                },
+                {
+                    questionId: "Q9",
+                    questionText: `
+Let X be your first 5 scores:
+
+X = {first5Scores}
+
+1) Compute the sample mean of X.  
+2) Compute a 95% confidence interval for the population mean assuming normality.  
+3) Use your own sample standard deviation of X.  
+4) Write the interval as (Lower, Upper).
+                    `,
+                    type: "essay",
+                    difficulty: "hard",
+                    points: 10
+                },
+                {
+                    questionId: "Q10",
+                    questionText: `
+Given p = {randomPValue}:
+
+1) Assume X ~ Binomial(n = 10, p).  
+2) Compute P(X ≥ 2).  
+3) Round to four decimals.
+                    `,
+                    type: "short",
+                    difficulty: "medium",
+                    points: 10
+                }
+            ];
+
+            return {
+                questions: hardcodedQuestions,
+                timeLimit: fixedTimeLimit
+            };
+        }
+
+        // ============================================
+        // 시험 시작
+        // ============================================
+        async function startExam(mode) {
+            const name = document.getElementById('studentName').value.trim();
+            const id = document.getElementById('studentId').value.trim();
+            
+            if (!name || !id) {
+                alert('이름과 학번을 입력하세요.');
+                return;
+            }
+            
+            if (mode === 'real') {
+                try {
+                    const responseDoc = await db.collection('responses').doc(id).get();
+                    if (responseDoc.exists) {
+                        alert('이미 실전 시험을 응시하셨습니다. 재응시는 불가능합니다.');
+                        return;
+                    }
+                } catch (error) {
+                    console.error('응시 이력 확인 오류:', error);
+                }
+            }
+            
+            currentMode = mode;
+            studentData = {
+                name: name,
+                id: id,
+                ...generateStudentData(id)
+            };
+            
+            const { questions: loadedQuestions, timeLimit: loadedTimeLimit } = await loadQuestionsFromFirebase(mode);
+            questions = loadedQuestions;
+            timeLimit = loadedTimeLimit; // 40분
+            
+            if (questions.length === 0) {
+                alert('등록된 문제가 없습니다. 관리자에게 문의하세요.');
+                return;
+            }
+            
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('examScreen').classList.remove('hidden');
+            
+            document.getElementById('studentInfo').textContent = `${name} (${id})`;
+            document.getElementById('modeInfo').textContent = mode === 'practice' ? 'Practice Mode' : 'Final Exam';
+            
+            currentQuestionIndex = 0;
+            answers = [];
+            examStartTime = Date.now();
+            
+            renderCurrentQuestion();
+            startTimer(); // 전체 시험 타이머
+        }
+
+        // ============================================
+        // 답안 입력 UI
+        // ============================================
+        function renderAnswerInput(question, index) {
+            const type = question.type;
+            
+            if (type === 'essay' || type === 'interpretation') {
+                return `
+                    <textarea 
+                        id="answer_${index}" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 min-h-32"
+                        placeholder="답안을 입력하세요..."
+                    ></textarea>
+                `;
+            } else {
+                return `
+                    <input 
+                        type="text" 
+                        id="answer_${index}" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                        placeholder="답안을 입력하세요..."
+                    >
+                `;
+            }
+        }
+
+        // ============================================
+        // 한 화면 한 문제 렌더링
+        // ============================================
+        function renderCurrentQuestion() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = "";
+        
+            const q = questions[currentQuestionIndex];
+            if (!q) {
+                submitExam();
+                return;
+            }
+        
+            let questionText = replaceVariables(q.questionText, studentData);
+        
+            container.innerHTML = `
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-xl font-bold">
+                            Question ${currentQuestionIndex + 1} / ${questions.length}
+                        </h3>
+                        <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            ${q.points}점
+                        </span>
+                    </div>
+
+                    <div class="mb-4 text-gray-700 leading-relaxed whitespace-pre-line">
+                        ${questionText}
+                    </div>
+
+                    <div class="mt-4">
+                        ${renderAnswerInput(q, currentQuestionIndex)}
+                    </div>
+
+                    <div class="mt-6 flex justify-between items-center text-sm text-gray-600">
+                        <div>
+                            ⏱ 전체 시험 시간: 40분 / 각 문항: 80초
+                        </div>
+                        <div>
+                            ⏳ 이 문항 남은 시간: 
+                            <span id="questionTimer" class="text-red-600 font-bold">80</span> sec
+                        </div>
+                    </div>
+                </div>
+            `;
+        
+            startQuestionTimer();
+        }
+
+        // ============================================
+        // 문항 타이머 (80초)
+        // ============================================
+        function startQuestionTimer() {
+            let remain = perQuestionLimit;
+            clearInterval(questionTimer);
+        
+            questionTimer = setInterval(() => {
+                remain--;
+                const el = document.getElementById('questionTimer');
+                if (el) el.textContent = remain;
+        
+                if (remain <= 0) {
+                    clearInterval(questionTimer);
+                    moveToNextQuestion();
+                }
+            }, 1000);
+        }
+        
+        function moveToNextQuestion() {
+            saveCurrentAnswer();
+            currentQuestionIndex++;
+        
+            if (currentQuestionIndex >= questions.length) {
+                submitExam();
+            } else {
+                renderCurrentQuestion();
+            }
+        }
+        
+        function saveCurrentAnswer() {
+            const q = questions[currentQuestionIndex];
+            const ansBox = document.getElementById(`answer_${currentQuestionIndex}`);
+            if (!q || !ansBox) return;
+        
+            answers[currentQuestionIndex] = {
+                questionId: q.questionId,
+                answer: ansBox.value || "",
+                points: q.points
+            };
+        }
+
+        // ============================================
+        // 전체 시험 타이머 (40분)
+        // ============================================
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - examStartTime) / 1000);
+                const remaining = timeLimit - elapsed;
+                
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    clearInterval(questionTimer);
+                    alert('시험 시간이 종료되었습니다!');
+                    submitExam();
+                    return;
+                }
+                
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                const timerElement = document.getElementById('timer');
+                timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                
+                if (remaining < 60) {
+                    timerElement.classList.add('timer-warning', 'text-red-600');
+                }
+            }, 1000);
+        }
+
+        // ============================================
+        // 수동 제출 버튼
+        // ============================================
+        function manualSubmit() {
+            if (confirm('지금까지 작성한 답안을 제출할까요? (제출 후에는 수정할 수 없습니다)')) {
+                submitExam();
+            }
+        }
+
+        // ============================================
+        // 시험 제출
+        // ============================================
+        async function submitExam() {
+            clearInterval(timerInterval);
+            clearInterval(questionTimer);
+
+            // 마지막 문항 답안 저장
+            saveCurrentAnswer();
+
+            // 빈 답안도 구조 채우기
+            const finalAnswers = questions.map((q, idx) => {
+                const existing = answers[idx];
+                return existing || {
+                    questionId: q.questionId,
+                    answer: "",
+                    points: q.points
+                };
+            });
+
+            if (currentMode === 'real') {
+                try {
+                    await db.collection('responses').doc(studentData.id).set({
+                        name: studentData.name,
+                        studentId: studentData.id,
+                        mode: currentMode,
+                        answers: finalAnswers,
+                        submittedAt: new Date().toISOString(),
+                        timeSpent: Math.floor((Date.now() - examStartTime) / 1000)
+                    });
+                } catch (error) {
+                    console.error('답안 저장 오류:', error);
+                    alert('답안 저장에 실패했습니다. 다시 시도해주세요.');
+                    return;
+                }
+            }
+            
+            showResults(finalAnswers);
+        }
+
+        // ============================================
+        // 결과 표시
+        // ============================================
+        function showResults(answersForResult) {
+            document.getElementById('examScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+            
+            const resultContent = document.getElementById('resultContent');
+            const totalPoints = questions.reduce((sum, q) => sum + (q.points || 0), 0);
+            
+            let html = `
+                <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 rounded-lg mb-6">
+                    <h3 class="text-2xl font-bold mb-2">${studentData.name} (${studentData.id})</h3>
+                    <p class="text-lg">${currentMode === 'practice' ? 'Practice Mode 완료' : 'Final Exam 완료'}</p>
+                    <p class="text-sm mt-2">총 ${questions.length}문항 / ${totalPoints}점</p>
+                </div>
+                
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                    <h4 class="font-bold text-blue-900 mb-2">📝 제출된 답안</h4>
+                    <p class="text-sm text-blue-800">
+                        ${currentMode === 'practice' ? '연습 모드이므로 정답 및 해설은 교수님께 문의하세요.' : '실전 시험 답안이 제출되었습니다. 채점 결과는 추후 공지됩니다.'}
+                    </p>
+                </div>
+                
+                <div class="mt-6 space-y-3">
+            `;
+            
+            answersForResult.forEach((answer, index) => {
+                html += `
+                    <div class="bg-gray-50 p-4 rounded">
+                        <p class="font-semibold text-gray-700">${index + 1}번 문항 (${answer.points}점)</p>
+                        <p class="text-gray-600 mt-2 whitespace-pre-line">${answer.answer || '(답안 미작성)'}</p>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultContent.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
