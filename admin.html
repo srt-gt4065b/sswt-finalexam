@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin – MCQ Question Manager V5</title>
+    <title>Admin – MCQ Question Manager V10</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -54,7 +54,7 @@ function checkAdminPassword() {
 <div class="max-w-7xl mx-auto bg-white p-6 md:p-10 rounded-2xl shadow-xl">
 
     <h1 class="text-3xl md:text-4xl font-bold text-center text-purple-600 mb-6">
-        Admin – MCQ Question Manager V5
+        Admin – MCQ Question Manager V10
     </h1>
 
     <!-- Version selector -->
@@ -83,6 +83,9 @@ function checkAdminPassword() {
                 data-tab="previewTab">Preview & Edit</button>
         <button class="tab-btn px-4 py-2 text-sm font-semibold text-gray-500"
                 data-tab="firestoreTab">Firestore Upload</button>
+        <!-- NEW: Final 100 Generator tab -->
+        <button class="tab-btn px-4 py-2 text-sm font-semibold text-gray-500"
+                data-tab="final100Tab">Final 100 Generator</button>
     </div>
 
     <!-- ===================== -->
@@ -224,6 +227,10 @@ function checkAdminPassword() {
         <div class="flex justify-between items-center mb-3">
             <h2 class="text-xl font-bold text-gray-800">Preview & Inline Edit</h2>
             <div class="flex gap-2">
+                <button onclick="removeDuplicateQuestions()"
+                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded text-sm font-semibold">
+                    Remove Duplicates
+                </button>
                 <button onclick="addEmptyQuestion()"
                         class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-semibold">
                     + Add Empty Question
@@ -270,6 +277,48 @@ function checkAdminPassword() {
         </div>
     </div>
 
+    <!-- ===================== -->
+    <!-- TAB: FINAL 100 GENERATOR (NEW) -->
+    <!-- ===================== -->
+    <div id="final100Tab" class="tab-pane hidden mt-4">
+        <div class="border rounded-xl p-6 bg-gray-50">
+            <h2 class="text-2xl font-bold mb-4 text-purple-700">
+                Final 100 Generator (Balanced Exam Builder)
+            </h2>
+
+            <p class="text-gray-600 text-sm mb-4">
+                Generates 100 questions using balanced distribution:<br>
+                <b>Descriptive 15, Probability 15, Sampling 15, Estimation 15,<br>
+                Hypothesis 15, Regression 15, Practical 10</b><br>
+                Title: <b>Statistics with SW Tools – Fall 2025 Final Exam</b>
+            </p>
+
+            <button onclick="generateFinal100()"
+                    class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-bold">
+                Generate Balanced 100 Questions
+            </button>
+
+            <div id="final100Status" class="mt-4 text-center text-sm text-gray-600"></div>
+
+            <div id="final100Preview"
+                 class="border mt-4 p-4 rounded-xl bg-white max-h-[500px] overflow-auto text-sm">
+                <p class="text-gray-500">No questions generated yet.</p>
+            </div>
+
+            <div class="flex gap-3 mt-4">
+                <button onclick="saveFinal100Version()"
+                        class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-bold">
+                    Save as New Exam Version
+                </button>
+
+                <button onclick="applyAsCurrentFinal()"
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold">
+                    Apply as Current Final Exam
+                </button>
+            </div>
+        </div>
+    </div>
+
     <p id="statusMsg" class="text-center mt-6 text-lg font-semibold"></p>
 
 </div>
@@ -291,11 +340,47 @@ const db = firebase.firestore();
 </script>
 
 <!-- ========================================================= -->
-<!-- GLOBAL STATE -->
+<!-- GLOBAL STATE + UTILITIES -->
 <!-- ========================================================= -->
 <script>
-let previewData = []; 
-// 구조: {id, question, opt1, opt2, opt3, opt4, answer, topic?, level?}
+let previewData = []; // {id, question, opt1, opt2, opt3, opt4, answer, topic?, level?}
+let final100Data = []; // Final 100 exam set
+
+function normalizeQuestionText(text) {
+    return (text || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+}
+
+function shuffleArray(array) {
+    return array
+        .map(x => x)
+        .sort(() => Math.random() - 0.5);
+}
+
+function removeDuplicateQuestions() {
+    if (!previewData.length) {
+        alert("No questions to clean.");
+        return;
+    }
+    const seen = new Set();
+    const before = previewData.length;
+    previewData = previewData.filter(q => {
+        const key = normalizeQuestionText(q.question);
+        if (!key) return false;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+    const after = previewData.length;
+    renderPreviewTable();
+    const removed = before - after;
+    document.getElementById("statusMsg").textContent =
+        `🧹 Removed ${removed} duplicate questions. Final count: ${after}`;
+    document.getElementById("statusMsg").className =
+        "text-yellow-600 text-center text-lg font-semibold";
+}
 </script>
 
 <!-- ========================================================= -->
@@ -359,9 +444,10 @@ function previewCSV() {
                 answer: r.answer ? parseInt(r.answer) : 0
             });
         });
+        removeDuplicateQuestions();
         renderPreviewTable();
         document.getElementById("statusMsg").textContent =
-            `✅ Added ${rows.length} questions from CSV.`;
+            `✅ Added ${rows.length} questions from CSV (duplicates removed).`;
         document.getElementById("statusMsg").className =
             "text-green-600 text-center text-lg font-semibold";
     };
@@ -370,7 +456,7 @@ function previewCSV() {
 </script>
 
 <!-- ========================================================= -->
-<!-- JSON PREVIEW (2 FORMATS 지원) -->
+<!-- JSON PREVIEW (2 FORMATS 지원) + DEDUPE -->
 <!-- ========================================================= -->
 <script>
 function previewJSON() {
@@ -384,7 +470,6 @@ function previewJSON() {
         try {
             const data = JSON.parse(e.target.result);
 
-            // Format 1: Array of full questions
             if (Array.isArray(data)) {
                 data.forEach((q, idx) => {
                     previewData.push({
@@ -400,7 +485,6 @@ function previewJSON() {
                     });
                 });
             }
-            // Format 2: { Low:[], Medium:[], High:[] }
             else if (data.Low || data.Medium || data.High) {
                 ["Low","Medium","High"].forEach(level=>{
                     if (Array.isArray(data[level])) {
@@ -424,9 +508,10 @@ function previewJSON() {
                 return;
             }
 
+            removeDuplicateQuestions();
             renderPreviewTable();
             document.getElementById("statusMsg").textContent =
-                "✅ JSON questions loaded into preview.";
+                "✅ JSON questions loaded into preview (duplicates removed).";
             document.getElementById("statusMsg").className =
                 "text-green-600 text-center text-lg font-semibold";
 
@@ -440,7 +525,7 @@ function previewJSON() {
 </script>
 
 <!-- ========================================================= -->
-<!-- TEMPLATE JSON LOADER (주제별 파일) -->
+<!-- TEMPLATE JSON LOADER (주제별 파일) + DEDUPE -->
 <!-- ========================================================= -->
 <script>
 async function loadTemplateJSON(filename, topicLabel) {
@@ -470,12 +555,12 @@ async function loadTemplateJSON(filename, topicLabel) {
                 });
             }
         });
+        removeDuplicateQuestions();
         renderPreviewTable();
         document.getElementById("statusMsg").textContent =
-            `✅ Loaded ${added} questions from ${filename}.`;
+            `✅ Loaded ${added} questions from ${filename} (duplicates removed).`;
         document.getElementById("statusMsg").className =
             "text-green-600 text-center text-lg font-semibold";
-        // 탭 전환
         document.querySelector('[data-tab="previewTab"]').click();
     } catch(err) {
         console.error(err);
@@ -485,10 +570,9 @@ async function loadTemplateJSON(filename, topicLabel) {
 </script>
 
 <!-- ========================================================= -->
-<!-- RANDOM GENERATOR (간단 템플릿 예시) -->
+<!-- RANDOM GENERATOR (간단 템플릿 예시) + DEDUPE -->
 <!-- ========================================================= -->
 <script>
-// 간단 템플릿 예시 (실제 사용 시 확장 가능)
 const templates = {
     "Descriptive Statistics": {
         Low: [
@@ -581,13 +665,13 @@ function generateRandomQuestions() {
         return;
     }
 
-    let uniqueUsed = new Set(previewData.map(q => q.question.toLowerCase()));
+    let uniqueUsed = new Set(previewData.map(q => normalizeQuestionText(q.question)));
     let generated = [];
     let tries = 0;
 
     while (generated.length < num && tries < num * 10) {
         const item = pool[Math.floor(Math.random() * pool.length)];
-        const key = item.q.toLowerCase();
+        const key = normalizeQuestionText(item.q);
         if (!uniqueUsed.has(key)) {
             uniqueUsed.add(key);
             generated.push({
@@ -611,13 +695,13 @@ function generateRandomQuestions() {
     }
 
     previewData = previewData.concat(generated);
+    removeDuplicateQuestions();
     renderPreviewTable();
     document.getElementById("statusMsg").textContent =
-        `✨ Generated ${generated.length} questions for ${topic} (${level}).`;
+        `✨ Generated ${generated.length} questions for ${topic} (${level}) (duplicates removed).`;
     document.getElementById("statusMsg").className =
         "text-blue-600 text-center text-lg font-semibold";
 
-    // preview 탭으로 전환
     document.querySelector('[data-tab="previewTab"]').click();
 }
 </script>
@@ -680,7 +764,6 @@ function renderPreviewTable() {
     container.innerHTML = html;
 }
 
-// Inline edit handler (event delegation)
 document.getElementById("previewArea").addEventListener("blur", function(e) {
     const target = e.target;
     const idx = target.getAttribute("data-index");
@@ -811,6 +894,220 @@ function downloadBackupJSON(questions, docId, versionKey) {
     a.download = `backup_${docId}_${versionKey}.json`;
     a.click();
     URL.revokeObjectURL(url);
+}
+</script>
+
+<!-- ========================================================= -->
+<!-- FINAL 100 GENERATOR LOGIC (V10) -->
+<!-- ========================================================= -->
+<script>
+// helper: load & flatten one category file for Final 100
+async function loadCategoryForFinal(filename, topicLabel) {
+    const res = await fetch(`templates/${filename}`);
+    if (!res.ok) throw new Error(`Cannot load ${filename}`);
+    const data = await res.json();
+    const out = [];
+    ["Low","Medium","High"].forEach(level => {
+        if (Array.isArray(data[level])) {
+            data[level].forEach(q => {
+                out.push({
+                    question: q.q || q.text || q.question || "",
+                    opt1: q.opts ? (q.opts[0] || "") : (q.options ? q.options[0] : ""),
+                    opt2: q.opts ? (q.opts[1] || "") : (q.options ? q.options[1] : ""),
+                    opt3: q.opts ? (q.opts[2] || "") : (q.options ? q.options[2] : ""),
+                    opt4: q.opts ? (q.opts[3] || "") : (q.options ? q.options[3] : ""),
+                    answer: typeof q.ans === "number" ? q.ans : parseInt(q.answer || 0),
+                    topic: topicLabel,
+                    level: level
+                });
+            });
+        }
+    });
+    return out;
+}
+
+function renderFinal100Preview() {
+    const container = document.getElementById("final100Preview");
+    if (!final100Data.length) {
+        container.innerHTML = `<p class="text-gray-500">No questions generated yet.</p>`;
+        return;
+    }
+    let html = `
+      <table class="min-w-full border text-xs md:text-sm">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="border px-2 py-1">#</th>
+            <th class="border px-2 py-1">Topic</th>
+            <th class="border px-2 py-1">Level</th>
+            <th class="border px-2 py-1 w-[35%]">Question</th>
+            <th class="border px-2 py-1">Opt1</th>
+            <th class="border px-2 py-1">Opt2</th>
+            <th class="border px-2 py-1">Opt3</th>
+            <th class="border px-2 py-1">Opt4</th>
+            <th class="border px-2 py-1">Ans</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+    final100Data.forEach((q, idx) => {
+        html += `
+          <tr class="bg-white">
+            <td class="border px-1 py-1 text-center">${idx + 1}</td>
+            <td class="border px-1 py-1">${q.topic || ""}</td>
+            <td class="border px-1 py-1">${q.level || ""}</td>
+            <td class="border px-1 py-1">${q.question || ""}</td>
+            <td class="border px-1 py-1">${q.opt1 || ""}</td>
+            <td class="border px-1 py-1">${q.opt2 || ""}</td>
+            <td class="border px-1 py-1">${q.opt3 || ""}</td>
+            <td class="border px-1 py-1">${q.opt4 || ""}</td>
+            <td class="border px-1 py-1 text-center">${q.answer}</td>
+          </tr>
+        `;
+    });
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+async function generateFinal100() {
+    const status = document.getElementById("final100Status");
+    status.textContent = "Loading templates & generating balanced exam...";
+    status.className = "mt-4 text-center text-sm text-gray-700";
+
+    try {
+        const [
+            descriptive,
+            probability,
+            sampling,
+            estimation,
+            hypothesis,
+            regression,
+            practical
+        ] = await Promise.all([
+            loadCategoryForFinal("descriptive.json","Descriptive Statistics"),
+            loadCategoryForFinal("probability.json","Probability"),
+            loadCategoryForFinal("sampling.json","Sampling & Sampling Distribution"),
+            loadCategoryForFinal("estimation.json","Estimation (Confidence Interval)"),
+            loadCategoryForFinal("hypothesis.json","Hypothesis Testing"),
+            loadCategoryForFinal("regression.json","Regression Basics"),
+            loadCategoryForFinal("practical.json","Practical Real-World Applications")
+        ]);
+
+        final100Data = [];
+        const used = new Set();
+
+        function pickFrom(list, n) {
+            let added = 0;
+            const shuffled = shuffleArray(list);
+            for (const q of shuffled) {
+                if (added >= n) break;
+                const key = normalizeQuestionText(q.question);
+                if (!key || used.has(key)) continue;
+                used.add(key);
+                final100Data.push(q);
+                added++;
+            }
+            return added;
+        }
+
+        pickFrom(descriptive, 15);
+        pickFrom(probability, 15);
+        pickFrom(sampling, 15);
+        pickFrom(estimation, 15);
+        pickFrom(hypothesis, 15);
+        pickFrom(regression, 15);
+        pickFrom(practical, 10);
+
+        if (final100Data.length < 100) {
+            status.textContent =
+                `⚠ Generated only ${final100Data.length} unique questions. Check template sizes or duplicates.`;
+            status.className = "mt-4 text-center text-sm text-yellow-700";
+        } else {
+            status.textContent = `✅ Generated ${final100Data.length} questions for the Final exam.`;
+            status.className = "mt-4 text-center text-sm text-green-700";
+        }
+
+        final100Data = shuffleArray(final100Data);
+        renderFinal100Preview();
+
+    } catch (err) {
+        console.error(err);
+        status.textContent = "❌ Failed to generate Final 100. Check console.";
+        status.className = "mt-4 text-center text-sm text-red-700";
+    }
+}
+
+async function saveFinal100Version() {
+    if (!final100Data.length) {
+        alert("No Final 100 data. Please generate first.");
+        return;
+    }
+
+    const versionId = prompt("Enter exam version id (e.g., final2025)", "final2025");
+    if (!versionId) return;
+
+    const questions = final100Data.map((q, idx) => ({
+        index: idx + 1,
+        q: q.question || "",
+        opts: [q.opt1 || "", q.opt2 || "", q.opt3 || "", q.opt4 || ""],
+        ans: typeof q.answer === "number" ? q.answer : parseInt(q.answer || 0),
+        topic: q.topic || "",
+        level: q.level || ""
+    }));
+
+    const payload = {
+        title: "Statistics with SW Tools – Fall 2025 Final Exam",
+        count: questions.length,
+        questions,
+        createdAt: new Date().toISOString()
+    };
+
+    try {
+        await db.collection("exam_versions").doc(versionId).set(payload);
+        document.getElementById("final100Status").textContent =
+            `✅ Saved Final 100 as exam_versions / ${versionId}`;
+        document.getElementById("final100Status").className =
+            "mt-4 text-center text-sm text-green-700";
+    } catch (err) {
+        console.error(err);
+        alert("Failed to save exam version.");
+    }
+}
+
+async function applyAsCurrentFinal() {
+    if (!final100Data.length) {
+        alert("No Final 100 data. Please generate first.");
+        return;
+    }
+
+    const versionId = prompt("Label for this 'current' final version? (e.g., final2025)", "final2025") || "final2025";
+
+    const questions = final100Data.map((q, idx) => ({
+        index: idx + 1,
+        q: q.question || "",
+        opts: [q.opt1 || "", q.opt2 || "", q.opt3 || "", q.opt4 || ""],
+        ans: typeof q.answer === "number" ? q.answer : parseInt(q.answer || 0),
+        topic: q.topic || "",
+        level: q.level || ""
+    }));
+
+    const payload = {
+        title: "Statistics with SW Tools – Fall 2025 Final Exam",
+        refVersion: versionId,
+        count: questions.length,
+        questions,
+        updatedAt: new Date().toISOString()
+    };
+
+    try {
+        await db.collection("exam_versions").doc("current").set(payload);
+        document.getElementById("final100Status").textContent =
+            `✅ Applied this set as exam_versions / current (ref=${versionId})`;
+        document.getElementById("final100Status").className =
+            "mt-4 text-center text-sm text-green-700";
+    } catch (err) {
+        console.error(err);
+        alert("Failed to apply as current final.");
+    }
 }
 </script>
 
