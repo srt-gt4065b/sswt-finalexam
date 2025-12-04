@@ -196,10 +196,14 @@ document.getElementById("agreeCheck").addEventListener("change", () => {
 
     </div>
 </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
 <script>
 /* ============================================================
-   FIREBASE INITIALIZATION
-   ============================================================ */
+   FIREBASE INIT
+============================================================ */
 const firebaseConfig = {
     apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
     authDomain: "sswt-final.firebaseapp.com",
@@ -212,350 +216,223 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 /* ============================================================
-   GLOBAL VARIABLES
-   ============================================================ */
+   GLOBAL STATE
+============================================================ */
+let TOTAL_TIME = 2000; // 33분 20초 = 2000초
 let questions = [];
-let answers = [];
 let currentIndex = 0;
-
-let examTimer = null;
-let questionTimer = null;
-
-const TOTAL_TIME = 2000;   // 33m 20s
-const QUESTION_TIME = 20;  // each question: 20 seconds
-
+let answers = [];
 let examStartTime = null;
-
-
-/* ============================================================
-   SEED-BASED RANDOM (for unique order per student)
-   ============================================================ */
-function seededRandom(seed) {
-    const x = Math.sin(seed) * 10000;
-    return x - Math.floor(x);
-}
-
-function shuffleQuestionsWithSeed(qList, seed) {
-    let arr = [...qList];
-    for (let i = arr.length - 1; i > 0; i--) {
-        const r = seededRandom(seed + i);
-        const j = Math.floor(r * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
-
+let studentName = "";
+let studentId = "";
+const EXAM_DOC_ID = "current";
 
 /* ============================================================
    LOAD QUESTIONS FROM FIRESTORE
-   ============================================================ */
+============================================================ */
+async function loadQuestions(docId = EXAM_DOC_ID) {
+    try {
+        const snap = await db.collection("exam_questions").doc(docId).get();
+
+        if (!snap.exists) {
+            alert("❌ Exam questions not found.");
+            return false;
+        }
+
+        let raw = snap.data().questions;
+
+        // 배열 or object → 무조건 배열로 변환
+        questions = Array.isArray(raw) ? raw : Object.values(raw);
+
+        // 100문제만 사용한다고 가정
+        if (questions.length < 1) {
+            alert("❌ No questions available.");
+            return false;
+        }
+
+        return true;
+
+    } catch (err) {
+        console.error(err);
+        alert("❌ Failed to load exam questions.");
+        return false;
+    }
+}
+
+/* ============================================================
+   SHUFFLE QUESTIONS (각 학생마다 순서 다르게)
+============================================================ */
+function shuffle(array) {
+    let a = [...array];
+    for (let i = a.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+/* ============================================================
+   ATTEMPT CHECK (재응시 금지)
+============================================================ */
+async function verifyAttempt(studentId) {
+    try {
+        const doc = await db.collection("exam_responses").doc(studentId).get();
+        return doc.exists ? false : true;
+    } catch (err) {
+        console.error(err);
+        return true;
+    }
+}
+
+/* ============================================================
+   START EXAM
+============================================================ */
 async function startExam() {
-    const docRef = db.collection("exam_questions").doc(docId);
-    const snap = await docRef.get();
 
-    let raw = snap.data().questions;                       // 🔥 추가 1
-    questions = Array.isArray(raw) ? raw : Object.values(raw); // 🔥 추가 2
+    studentName = document.getElementById("studentName").value.trim();
+    studentId   = document.getElementById("studentId").value.trim();
 
-    showQuestion(0);
+    if (!studentName || !studentId) {
+        alert("Please enter your name and student ID.");
+        return;
+    }
+
+    // 1 attempt ONLY
+    const ok = await verifyAttempt(studentId);
+    if (!ok) {
+        alert("⚠ You have already taken this exam. Retake is not allowed.");
+        return;
+    }
+
+    // Load questions
+    const loaded = await loadQuestions(EXAM_DOC_ID);
+    if (!loaded) return;
+
+    // Shuffle questions
+    questions = shuffle(questions);
+
+    // Set up exam
+    currentIndex = 0;
+    answers = new Array(questions.length).fill(null);
+    examStartTime = Date.now();
+
+    // Hide login, show exam screen
+    document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("examScreen").classList.remove("hidden");
+
+    // Render timer + first question
     startTimer();
+    showQuestion();
 }
 
- // 🔥 여기서 문제 불러오기
-    await loadQuestions(EXAM_DOC_ID);
-
-    if (!questions || questions.length === 0) {
-        alert("No questions loaded.");
-        return;
-    }
-
-    
 /* ============================================================
-   RENDER QUESTION (4-Choice MCQ)
-   ============================================================ */
-function showQuestion() {
-    const container = document.getElementById("questionContainer");
-    container.innerHTML = "";
+   TIMER
+============================================================ */
+function startTimer() {
+    let remaining = TOTAL_TIME;
 
-    if (currentIndex >= questions.length) {
-        submitExam();
-        return;
-    }
+    let timer = setInterval(() => {
+        remaining--;
 
-    const q = questions[currentIndex];
-    const opts = q.options;
+        let mm = String(Math.floor(remaining / 60)).padStart(2,'0');
+        let ss = String(remaining % 60).padStart(2,'0');
 
-    // HTML for options
-    let optionsHTML = "";
-    opts.forEach((opt, idx) => {
-        optionsHTML += `
-            <label class="block bg-gray-50 border rounded-lg p-3 mb-3 hover:bg-gray-100 cursor-pointer">
-                <input type="radio" name="mcqOption" value="${idx}" class="mr-2">
-                ${opt}
-            </label>
-        `;
-    });
+        document.getElementById("timeLeft").textContent = `${mm}:${ss}`;
 
-    container.innerHTML = `
-        <div class="bg-white p-6 rounded-xl shadow-lg animate-fadeIn">
-
-            <h3 class="text-xl font-bold mb-3">
-                Question ${currentIndex + 1} / ${questions.length}
-            </h3>
-
-            <p class="text-gray-800 mb-5 whitespace-pre-line leading-relaxed">
-                ${q.text}
-            </p>
-
-            ${optionsHTML}
-
-            <p class="text-right text-sm text-gray-600 mt-4">
-                ⏳ Time left: <span id="questionTimer">${QUESTION_TIME}</span> sec
-            </p>
-        </div>
-    `;
-
-    startQuestionTimer();
-}
-
-
-/* ============================================================
-   QUESTION TIMER: 20 seconds
-   ============================================================ */
-function startQuestionTimer() {
-    let timeLeft = QUESTION_TIME;
-
-    clearInterval(questionTimer);
-
-    questionTimer = setInterval(() => {
-        timeLeft--;
-
-        const timerEl = document.getElementById("questionTimer");
-        if (timerEl) timerEl.textContent = timeLeft;
-
-        if (timeLeft <= 0) {
-            clearInterval(questionTimer);
-            saveAnswerAndNext();
+        if (remaining <= 0) {
+            clearInterval(timer);
+            finishExam();
         }
     }, 1000);
 }
 
+/* ============================================================
+   RENDER QUESTION
+============================================================ */
+function showQuestion() {
+    const q = questions[currentIndex];
+
+    if (!q) return;
+
+    document.getElementById("questionNumber").textContent =
+        `Question ${currentIndex+1} / ${questions.length}`;
+
+    document.getElementById("questionText").textContent = q.text;
+
+    const opts = q.options;
+
+    document.getElementById("opt1label").textContent = opts[0];
+    document.getElementById("opt2label").textContent = opts[1];
+    document.getElementById("opt3label").textContent = opts[2];
+    document.getElementById("opt4label").textContent = opts[3];
+
+    // restore selection
+    let saved = answers[currentIndex];
+    document.querySelectorAll("input[name='choice']").forEach(r => {
+        r.checked = (parseInt(r.value) === saved);
+    });
+}
 
 /* ============================================================
-   SAVE ANSWER & MOVE TO NEXT
-   ============================================================ */
-function saveAnswerAndNext() {
-    let selected = document.querySelector("input[name='mcqOption']:checked");
-    let answerIndex = selected ? parseInt(selected.value) : -1;
+   RECORD ANSWER & NEXT
+============================================================ */
+function nextQuestion() {
+    const selected = document.querySelector("input[name='choice']:checked");
 
-    answers.push({
-        qid: questions[currentIndex].id,
-        question: questions[currentIndex].text,
-        selected: answerIndex,
-        options: questions[currentIndex].options
-    });
+    if (!selected) {
+        alert("Please select an answer.");
+        return;
+    }
+
+    answers[currentIndex] = parseInt(selected.value);
 
     currentIndex++;
 
     if (currentIndex >= questions.length) {
-        submitExam();
+        finishExam();
         return;
     }
+
+    document.querySelectorAll("input[name='choice']").forEach(r => r.checked = false);
 
     showQuestion();
 }
 
-
 /* ============================================================
-   MAIN EXAM TIMER: 2000 seconds
-   ============================================================ */
-function startExamTimer() {
-    clearInterval(examTimer);
+   SUBMIT ANSWERS
+============================================================ */
+async function finishExam() {
+    // Score
+    let score = 0;
+    for (let i = 0; i < questions.length; i++) {
+        if (answers[i] === questions[i].answer) score++;
+    }
 
-    examTimer = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - examStartTime) / 1000);
-        const left = TOTAL_TIME - elapsed;
+    let result = {
+        studentId,
+        name: studentName,
+        score,
+        selectedAnswers: answers,
+        correctAnswers: questions.map(q => q.answer),
+        version: EXAM_DOC_ID,
+        timestamp: new Date().toISOString()
+    };
 
-        if (left <= 0) {
-            clearInterval(examTimer);
-            clearInterval(questionTimer);
-            submitExam();
-            return;
-        }
+    try {
+        await db.collection("exam_responses").doc(studentId).set(result);
 
-        const m = Math.floor(left / 60);
-        const s = left % 60;
-        document.getElementById("timer").textContent =
-            `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+        document.getElementById("examScreen").classList.add("hidden");
+        document.getElementById("finishScreen").classList.remove("hidden");
 
-        if (left <= 30) {
-            document.getElementById("timer").classList.add("text-red-600");
-        }
-    }, 1000);
+        document.getElementById("finalScore").textContent = score;
+
+    } catch (err) {
+        console.error(err);
+        alert("❌ Failed to submit exam.");
+    }
 }
 </script>
-<script>
-/* ============================================================
-   START EXAM (after instructions)
-   ============================================================ */
-document.getElementById("startExamBtn").addEventListener("click", async () => {
-    document.getElementById("instructionModal").classList.add("hidden");
-    await startExam();
-});
 
-
-async function startExam() {
-    const name = document.getElementById("studentName").value.trim();
-    const id = document.getElementById("studentId").value.trim();
-
-    if (!name || !id) {
-        alert("Missing student information.");
-        return;
-    }
-
-    // 1 attempt restriction
-    try {
-        const existing = await db.collection("exam_responses").doc(id).get();
-        if (existing.exists) {
-            alert("You have already taken this exam. No retakes allowed.");
-            location.reload();
-            return;
-        }
-    } catch (err) {
-        console.error(err);
-        alert("Could not verify attempt history.");
-        return;
-    }
-
-    // Load & shuffle questions
-    try {
-        let qList = await loadQuestions();
-        const seed = parseInt(id) || Date.now();
-        questions = shuffleQuestionsWithSeed(qList, seed);
-    } catch (err) {
-        console.error(err);
-        alert("Error loading questions.");
-        return;
-    }
-
-    // Begin exam
-    document.getElementById("examScreen").classList.remove("hidden");
-    document.getElementById("studentInfo").textContent = `${name} (${id})`;
-
-    currentIndex = 0;
-    answers = [];
-
-    examStartTime = Date.now();
-    startExamTimer();
-
-    showQuestion();
-}
-
-
-/* ============================================================
-   SUBMIT EXAM (AUTO or FINAL)
-   ============================================================ */
-let examAlreadySubmitted = false;
-
-async function submitExam() {
-    if (examAlreadySubmitted) return;
-    examAlreadySubmitted = true;
-
-    clearInterval(examTimer);
-    clearInterval(questionTimer);
-
-    // Save last unanswered question if any
-    let selected = document.querySelector("input[name='mcqOption']:checked");
-    let answerIndex = selected ? parseInt(selected.value) : -1;
-
-    if (answers.length < questions.length) {
-        answers.push({
-            qid: questions[currentIndex]?.id,
-            question: questions[currentIndex]?.text,
-            selected: answerIndex,
-            options: questions[currentIndex]?.options || []
-        });
-    }
-
-    const name = document.getElementById("studentName").value.trim();
-    const id = document.getElementById("studentId").value.trim();
-    const timeSpent = Math.floor((Date.now() - examStartTime) / 1000);
-
-    try {
-        await db.collection("exam_responses").doc(id).set({
-            name: name,
-            studentId: id,
-            answers: answers,
-            questionCount: questions.length,
-            submittedAt: new Date().toISOString(),
-            timeSpent: timeSpent
-        });
-    } catch (err) {
-        console.error(err);
-        alert("Error saving your answers.");
-    }
-
-    showResults(name, id, timeSpent);
-}
-
-
-/* ============================================================
-   SHOW RESULTS SCREEN
-   ============================================================ */
-function showResults(name, id, timeSpent) {
-    document.getElementById("examScreen").classList.add("hidden");
-    document.getElementById("resultScreen").classList.remove("hidden");
-
-    const resultContent = document.getElementById("resultContent");
-
-    const answeredCount = answers.filter(a => a.selected !== -1).length;
-    const blankCount = questions.length - answeredCount;
-
-    const timeText = `${Math.floor(timeSpent / 60)}m ${timeSpent % 60}s`;
-
-    let html = `
-        <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 rounded-lg mb-6">
-            <h3 class="text-2xl font-bold mb-1">${name} (${id})</h3>
-            <p class="text-lg">Your exam has been recorded.</p>
-            <p class="text-sm mt-2">Total Questions: ${questions.length}</p>
-            <p class="text-sm">Time Spent: ${timeText}</p>
-        </div>
-
-        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-4">
-            <h4 class="font-bold text-blue-900 mb-2">Summary</h4>
-            <p class="text-sm text-blue-800">
-                Answered: <strong>${answeredCount}</strong> |
-                Blank: <strong>${blankCount}</strong>
-            </p>
-            <p class="text-xs mt-1 text-blue-700">
-                Grading will be provided later by your instructor.
-            </p>
-        </div>
-
-        <div class="mt-6 space-y-3">
-            <p class="font-semibold text-gray-700">Your Answers:</p>
-    `;
-
-    answers.forEach((a, idx) => {
-        const studentAnswer =
-            a.selected === -1
-                ? "<span class='text-gray-400'>(blank)</span>"
-                : a.options[a.selected];
-
-        html += `
-            <div class="bg-gray-50 p-3 rounded">
-                <p class="font-semibold text-gray-700 mb-1">Q${idx + 1}</p>
-                <p class="text-xs text-gray-500 mb-1 whitespace-pre-line">${a.question}</p>
-                <p class="text-gray-800">
-                    <span class="font-semibold">Your answer:</span> ${studentAnswer}
-                </p>
-            </div>
-        `;
-    });
-
-    html += `</div>`;
-    resultContent.innerHTML = html;
-}
-</script>
 
 </body>
 </html>
