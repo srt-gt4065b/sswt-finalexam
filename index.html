@@ -249,12 +249,15 @@ function shuffleQuestionsWithSeed(qList, seed) {
 /* ============================================================
    LOAD QUESTIONS FROM FIRESTORE
    ============================================================ */
-async function loadQuestions() {
-    const doc = await db.collection("exam_questions").doc("current").get();
-    if (!doc.exists) throw new Error("Questions document missing.");
-    const data = doc.data();
-    if (!Array.isArray(data.questions)) throw new Error("Invalid questions format.");
-    return data.questions;
+async function startExam() {
+    const docRef = db.collection("exam_questions").doc(docId);
+    const snap = await docRef.get();
+
+    let raw = snap.data().questions;                       // 🔥 추가 1
+    questions = Array.isArray(raw) ? raw : Object.values(raw); // 🔥 추가 2
+
+    showQuestion(0);
+    startTimer();
 }
 
 
