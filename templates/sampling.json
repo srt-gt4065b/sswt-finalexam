@@ -1,0 +1,310 @@
+{
+  "Low": [
+    {
+      "q": "What is a sample?",
+      "opts": ["A subset of a population", "An entire population", "A type of bias", "A parameter"],
+      "ans": 0
+    },
+    {
+      "q": "What is a population?",
+      "opts": ["The entire group of interest", "A small selected group", "A biased subset", "A random number generator"],
+      "ans": 0
+    },
+    {
+      "q": "What is a statistic?",
+      "opts": ["A numerical summary of a sample", "A summary of a population", "A type of parameter", "A sampling frame"],
+      "ans": 0
+    },
+    {
+      "q": "What is a parameter?",
+      "opts": ["A numerical summary of a population", "A sample estimate", "A random variable", "A sampling error"],
+      "ans": 0
+    },
+    {
+      "q": "What is simple random sampling?",
+      "opts": ["Every member has equal chance of selection", "Choosing based on convenience", "Selecting every nth person", "Choosing based on judgement"],
+      "ans": 0
+    },
+    {
+      "q": "A sampling method that selects participants easiest to reach is:",
+      "opts": ["Convenience sampling", "Cluster sampling", "Simple random sampling", "Systematic sampling"],
+      "ans": 0
+    },
+    {
+      "q": "Choosing every 10th student in a list is:",
+      "opts": ["Systematic sampling", "Random sampling", "Cluster sampling", "Stratified sampling"],
+      "ans": 0
+    },
+    {
+      "q": "Dividing population into groups and sampling entire groups is:",
+      "opts": ["Cluster sampling", "Convenience sampling", "Stratified sampling", "Systematic sampling"],
+      "ans": 0
+    },
+    {
+      "q": "Dividing population into strata and sampling from each is:",
+      "opts": ["Stratified sampling", "Cluster sampling", "Random sampling", "Quota sampling"],
+      "ans": 0
+    },
+    {
+      "q": "What is sampling bias?",
+      "opts": ["Systematic error from poor sampling", "Random error", "Measurement mistake", "Correct sampling"],
+      "ans": 0
+    },
+    {
+      "q": "What is a sampling frame?",
+      "opts": ["List of population members", "Sample mean", "Parameter list", "Sampling error"],
+      "ans": 0
+    },
+    {
+      "q": "Sample size refers to:",
+      "opts": ["Number of observations in a sample", "Number of populations", "Sampling error", "Parameter count"],
+      "ans": 0
+    },
+    {
+      "q": "A sample designed to represent different groups proportionally is:",
+      "opts": ["Stratified sample", "Cluster sample", "Convenience sample", "Judgment sample"],
+      "ans": 0
+    },
+    {
+      "q": "A larger sample size generally:",
+      "opts": ["Reduces sampling error", "Increases sampling error", "Eliminates bias", "Removes outliers"],
+      "ans": 0
+    },
+    {
+      "q": "Sample mean estimates:",
+      "opts": ["Population mean", "Sample median", "Population variance", "Population size"],
+      "ans": 0
+    },
+    {
+      "q": "Sample proportion estimates:",
+      "opts": ["Population proportion", "Sample variance", "Population mean", "Sampling frame"],
+      "ans": 0
+    },
+    {
+      "q": "Random sampling helps reduce:",
+      "opts": ["Bias", "Variance", "Population size", "Mean"],
+      "ans": 0
+    },
+    {
+      "q": "What does 'n' usually represent?",
+      "opts": ["Sample size", "Population size", "Standard deviation", "Mean"],
+      "ans": 0
+    },
+    {
+      "q": "Sampling error is:",
+      "opts": ["Difference between statistic and parameter", "Bias", "Incorrect measurement", "Missing data"],
+      "ans": 0
+    },
+    {
+      "q": "A representative sample is:",
+      "opts": ["Similar to population", "Biased sample", "Convenience sample", "Unusable sample"],
+      "ans": 0
+    }
+  ],
+
+  "Medium": [
+    {
+      "q": "The sampling distribution of the sample mean describes:",
+      "opts": ["Distribution of sample means from many samples", "Single sample's raw values", "Population distribution", "Variance distribution"],
+      "ans": 0
+    },
+    {
+      "q": "According to the Central Limit Theorem, sample means tend to be:",
+      "opts": ["Approximately normal for large n", "Always skewed", "Uniformly distributed", "Always equal to population mean"],
+      "ans": 0
+    },
+    {
+      "q": "As sample size increases, standard error:",
+      "opts": ["Decreases", "Increases", "Stays the same", "Becomes infinite"],
+      "ans": 0
+    },
+    {
+      "q": "Standard error measures:",
+      "opts": ["Variability of sample mean", "Population SD", "Skewness", "Proportion"],
+      "ans": 0
+    },
+    {
+      "q": "A biased sample leads to:",
+      "opts": ["Incorrect parameter estimates", "Correct estimates", "Larger sample size", "Smaller SD"],
+      "ans": 0
+    },
+    {
+      "q": "A sampling distribution is based on:",
+      "opts": ["Repeated samples", "One sample", "Population only", "Outliers"],
+      "ans": 0
+    },
+    {
+      "q": "Increasing sample size affects sampling distribution by:",
+      "opts": ["Reducing spread", "Increasing skew", "Eliminating mean", "Increasing variance"],
+      "ans": 0
+    },
+    {
+      "q": "The mean of the sampling distribution of sample mean equals:",
+      "opts": ["Population mean", "Sample mean", "Sample variance", "Population size"],
+      "ans": 0
+    },
+    {
+      "q": "Which sample is most likely biased?",
+      "opts": ["Volunteers only", "Stratified sample", "Random sample", "Large sample"],
+      "ans": 0
+    },
+    {
+      "q": "A sampling distribution becomes normal when:",
+      "opts": ["Sample size large enough", "Population is small", "Variance is high", "Mean is zero"],
+      "ans": 0
+    },
+    {
+      "q": "Standard error formula for sample mean is:",
+      "opts": ["σ / √n", "σ × √n", "σ² / n", "n × σ"],
+      "ans": 0
+    },
+    {
+      "q": "Sampling distribution of proportion becomes normal when:",
+      "opts": ["np and n(1-p) ≥ 10", "n ≤ 10", "p ≥ 0.9", "Population symmetric"],
+      "ans": 0
+    },
+    {
+      "q": "Cluster sampling is efficient when:",
+      "opts": ["Population naturally divided into groups", "Population uniform", "No groups exist", "Sample frame small"],
+      "ans": 0
+    },
+    {
+      "q": "Stratified sampling improves:",
+      "opts": ["Representation of subgroups", "Bias", "Measurement error", "Sample size"],
+      "ans": 0
+    },
+    {
+      "q": "Systematic sampling may cause bias if:",
+      "opts": ["There is hidden pattern", "Sample too small", "Sample large", "Mean unknown"],
+      "ans": 0
+    },
+    {
+      "q": "A repeated sampling process yields:",
+      "opts": ["Sampling distribution", "Population distribution", "Uniform distribution", "Random errors only"],
+      "ans": 0
+    },
+    {
+      "q": "Sampling variability refers to:",
+      "opts": ["Variation in statistics across samples", "Variation within one sample", "Measurement error", "Population change"],
+      "ans": 0
+    },
+    {
+      "q": "Larger samples reduce:",
+      "opts": ["Standard error", "Mean", "Median", "Range"],
+      "ans": 0
+    },
+    {
+      "q": "Convenience sampling often leads to:",
+      "opts": ["Bias", "Correct estimates", "Random selection", "Normal distribution"],
+      "ans": 0
+    },
+    {
+      "q": "The best way to reduce sampling bias is:",
+      "opts": ["Random sampling", "Small sample", "Convenience sampling", "One observation"],
+      "ans": 0
+    }
+  ],
+
+  "High": [
+    {
+      "q": "A company samples 100 customers weekly. Standard error decreases mainly because:",
+      "opts": ["Sample size large", "Population larger", "Mean increases", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "A distribution heavily skewed right: sampling distribution of mean becomes normal when:",
+      "opts": ["n ≥ 30", "n ≤ 5", "Population normal", "Variance 0"],
+      "ans": 0
+    },
+    {
+      "q": "A biased sample affects estimates because:",
+      "opts": ["Systematic deviation from parameter", "Random variation", "Large n", "Small SD"],
+      "ans": 0
+    },
+    {
+      "q": "A manufacturer wants consistent estimates. They should:",
+      "opts": ["Increase sample size", "Decrease n", "Use convenience sampling", "Sample one item"],
+      "ans": 0
+    },
+    {
+      "q": "Standard error increases when:",
+      "opts": ["n decreases", "n increases", "Variance decreases", "Sample unbiased"],
+      "ans": 0
+    },
+    {
+      "q": "Sampling distribution of proportion unstable when:",
+      "opts": ["np < 10 or n(1-p) < 10", "n large", "p around 0.5", "Population large"],
+      "ans": 0
+    },
+    {
+      "q": "Cluster sampling best when:",
+      "opts": ["Population geographically spread out", "Population small", "Variance low", "Convenience sampling needed"],
+      "ans": 0
+    },
+    {
+      "q": "Which sampling method reduces variance most?",
+      "opts": ["Stratified sampling", "Convenience sampling", "Cluster sampling", "Judgment sampling"],
+      "ans": 0
+    },
+    {
+      "q": "A sample mean differs from population mean because:",
+      "opts": ["Sampling variability", "Bias only", "Measurement error only", "Population changes"],
+      "ans": 0
+    },
+    {
+      "q": "Repeated sampling gives different means each time because:",
+      "opts": ["Random variability", "Population wrong", "Sample frame wrong", "Bias increases"],
+      "ans": 0
+    },
+    {
+      "q": "If sample size quadruples, standard error:",
+      "opts": ["Halves", "Doubles", "Remains same", "Becomes zero"],
+      "ans": 0
+    },
+    {
+      "q": "Sampling bias cannot be corrected by:",
+      "opts": ["Increasing sample size", "Stratified sampling", "Randomization", "Larger frame"],
+      "ans": 0
+    },
+    {
+      "q": "A hospital samples patients by room number. Bias risk?",
+      "opts": ["High if rooms group similar patients", "No bias", "Bias impossible", "Bias same as random"],
+      "ans": 0
+    },
+    {
+      "q": "A retailer uses systematic sampling in store entrance. Bias risk?",
+      "opts": ["High if entrance pattern aligns with intervals", "No risk", "Always unbiased", "Bias zero"],
+      "ans": 0
+    },
+    {
+      "q": "Stratified sampling improves precision when:",
+      "opts": ["Strata internally homogeneous", "Strata very different inside", "Sample small", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "Cluster sampling reduces cost when:",
+      "opts": ["Clusters geographically concentrated", "Clusters homogeneous", "Clusters random", "Population small"],
+      "ans": 0
+    },
+    {
+      "q": "A sample proportion’s sampling distribution becomes more normal as:",
+      "opts": ["n increases", "p decreases", "Variance increases", "Frame decreases"],
+      "ans": 0
+    },
+    {
+      "q": "A bookstore samples best-selling categories only. Bias?",
+      "opts": ["Severe bias", "Mild bias", "Unbiased", "Cannot tell"],
+      "ans": 0
+    },
+    {
+      "q": "A tech firm samples only active users. Bias?",
+      "opts": ["Upward bias in engagement estimates", "Downward bias", "Unbiased", "More variance"],
+      "ans": 0
+    },
+    {
+      "q": "A distribution of sample means is narrower than the population because:",
+      "opts": ["Averaging reduces variability", "Variance increases", "Mean decreases", "Histogram changes"],
+      "ans": 0
+    }
+  ]
+}

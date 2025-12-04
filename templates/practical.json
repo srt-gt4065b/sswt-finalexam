@@ -1,0 +1,310 @@
+{
+  "Low": [
+    {
+      "q": "A store tracks daily customer count. Which measure helps describe typical daily traffic?",
+      "opts": ["Mean", "Range", "Variance", "Correlation"],
+      "ans": 0
+    },
+    {
+      "q": "A café wants to know its most common drink size. Which measure should be used?",
+      "opts": ["Mode", "Mean", "Median", "Standard deviation"],
+      "ans": 0
+    },
+    {
+      "q": "A logistics firm compares delivery times. Which measure shows spread?",
+      "opts": ["Standard deviation", "Mode", "Median", "Frequency"],
+      "ans": 0
+    },
+    {
+      "q": "A food delivery app wants to know its typical order amount. Which measure works best for skewed spending?",
+      "opts": ["Median", "Mean", "Range", "Mode"],
+      "ans": 0
+    },
+    {
+      "q": "A hospital tracks wait times. Which plot helps visualize skewness?",
+      "opts": ["Histogram", "Scatterplot", "Pie chart", "Bar chart"],
+      "ans": 0
+    },
+    {
+      "q": "A hotel summarizes review ratings. Which statistic indicates consistency?",
+      "opts": ["Standard deviation", "Mode", "Median", "Range"],
+      "ans": 0
+    },
+    {
+      "q": "A clothing store compares men’s vs women’s average purchase. Which method is appropriate?",
+      "opts": ["Difference in means", "Mode comparison", "Range comparison", "Ranking only"],
+      "ans": 0
+    },
+    {
+      "q": "A gym tracks how many people visit per hour. What type of variable is this?",
+      "opts": ["Discrete numeric", "Continuous numeric", "Categorical", "Binary"],
+      "ans": 0
+    },
+    {
+      "q": "A mobile app tracks session duration in minutes. What type of variable?",
+      "opts": ["Continuous numeric", "Discrete numeric", "Binary", "Categorical"],
+      "ans": 0
+    },
+    {
+      "q": "A school surveys favorite lunch. Which variable type?",
+      "opts": ["Categorical", "Numeric", "Continuous", "Binary"],
+      "ans": 0
+    },
+    {
+      "q": "An HR team wants to summarize employee ages. Best graph?",
+      "opts": ["Histogram", "Pie chart", "Stacked bar chart", "Scatterplot"],
+      "ans": 0
+    },
+    {
+      "q": "A CEO reviews company expenses. Which measure shows typical spending?",
+      "opts": ["Mean", "Range", "Skewness", "Mode"],
+      "ans": 0
+    },
+    {
+      "q": "Which value best represents typical salary in a right-skewed distribution?",
+      "opts": ["Median", "Mean", "Mode", "Variance"],
+      "ans": 0
+    },
+    {
+      "q": "A startup wants to check if two versions of its app have different average load times. Which analysis?",
+      "opts": ["Difference in means", "Mode test", "Variance test", "Correlation"],
+      "ans": 0
+    },
+    {
+      "q": "A teacher compares class test scores before and after a program. What’s important?",
+      "opts": ["Mean difference", "Mode difference", "Skewness only", "Range only"],
+      "ans": 0
+    },
+    {
+      "q": "A retailer wants to summarize monthly revenue trend. Recommended?",
+      "opts": ["Line chart", "Scatterplot", "Pie chart", "Boxplot"],
+      "ans": 0
+    },
+    {
+      "q": "A business compares two regions’ customer ratings. Which measure best?",
+      "opts": ["Mean rating", "Mode rating", "Range only", "Quartiles only"],
+      "ans": 0
+    },
+    {
+      "q": "A restaurant wants to know if customer visits vary widely. Use:",
+      "opts": ["Standard deviation", "Mean", "Median", "Mode"],
+      "ans": 0
+    },
+    {
+      "q": "A marketer wants to know proportion of satisfied customers. Use:",
+      "opts": ["Sample proportion", "Sample mean", "Correlation", "Variance"],
+      "ans": 0
+    },
+    {
+      "q": "A tech firm tracks server uptime % each day. What type of variable?",
+      "opts": ["Continuous numeric", "Categorical", "Binary", "Ordinal"],
+      "ans": 0
+    }
+  ],
+
+  "Medium": [
+    {
+      "q": "A store sees heavy right-skew in transaction amounts. Best center measure?",
+      "opts": ["Median", "Mean", "Mode", "Standard deviation"],
+      "ans": 0
+    },
+    {
+      "q": "A ride-sharing company tracks trip lengths. Which visual best shows distribution?",
+      "opts": ["Histogram", "Pie chart", "Bar chart", "Line chart"],
+      "ans": 0
+    },
+    {
+      "q": "A firm monitors employee satisfaction on a 1–5 scale. Which statistic best summarizes?",
+      "opts": ["Mean", "Variance", "IQR", "Mode"],
+      "ans": 0
+    },
+    {
+      "q": "A business uses sampling to estimate average user rating from thousands of users. Why sampling?",
+      "opts": ["More efficient than surveying entire population", "More accurate than population", "Reduces variability", "Eliminates bias completely"],
+      "ans": 0
+    },
+    {
+      "q": "A hotel wants 95% CI for average stay duration. This interval provides:",
+      "opts": ["Range of plausible values for population mean", "Exact duration", "Median prediction", "Variance"],
+      "ans": 0
+    },
+    {
+      "q": "A restaurant compares delivery time before and after policy change. CI excludes 0. Conclusion?",
+      "opts": ["Significant change occurred", "No change", "More variance only", "Mean unchanged"],
+      "ans": 0
+    },
+    {
+      "q": "A retailer wants to test whether Region A has higher average sales than Region B. Use:",
+      "opts": ["Hypothesis test for means", "Median test", "Proportion test", "Variance test"],
+      "ans": 0
+    },
+    {
+      "q": "A company tests whether customer satisfaction increased after redesign. p=0.03 at α=0.05:",
+      "opts": ["Evidence satisfaction increased", "No increase", "Guaranteed increase", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "A business wants to measure variability of daily revenue. Which?",
+      "opts": ["Standard deviation", "Median", "Mode", "Proportion"],
+      "ans": 0
+    },
+    {
+      "q": "A firm compares two proportions (e.g., click rates). Which method?",
+      "opts": ["Two-proportion test", "Regression", "Variance test", "Sampling distribution"],
+      "ans": 0
+    },
+    {
+      "q": "A grocery store tries A/B testing. Which metric commonly used?",
+      "opts": ["Conversion rate", "Variance", "Median", "Mode"],
+      "ans": 0
+    },
+    {
+      "q": "A company wants to reduce Type I error risk. What to do?",
+      "opts": ["Lower α", "Raise α", "Increase variance", "Avoid sampling"],
+      "ans": 0
+    },
+    {
+      "q": "A fitness app wants to ensure smaller Type II error. Best option?",
+      "opts": ["Increase sample size", "Lower variance manually", "Raise α to 1", "Use categorical data"],
+      "ans": 0
+    },
+    {
+      "q": "A tech firm wants to check if a new algorithm reduces loading time. Best approach?",
+      "opts": ["Hypothesis testing", "Median-only analysis", "Mode comparison", "Pie chart test"],
+      "ans": 0
+    },
+    {
+      "q": "A school tests if average exam score changed after curriculum change. If p=0.55:",
+      "opts": ["No evidence of change", "Strong evidence of change", "Guaranteed improvement", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "A business wants to know if high customer ratings predict higher spending. Use:",
+      "opts": ["Correlation or regression", "Mode", "Variance only", "Histogram only"],
+      "ans": 0
+    },
+    {
+      "q": "A startup evaluates new UX feature. CI for effect: (0.2, 0.6). Interpretation?",
+      "opts": ["Meaningful positive effect", "Negative effect only", "No effect", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "A hospital wants typical recovery time from skewed data. Use:",
+      "opts": ["Median", "Mean", "Mode", "Variance"],
+      "ans": 0
+    },
+    {
+      "q": "A subscription service wants to know if churn changed. CI includes 0. Conclusion?",
+      "opts": ["No strong evidence of change", "Strong change", "Guaranteed drop", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "An app wants to forecast user activity based on time of day. Use:",
+      "opts": ["Regression", "Mode", "Sampling", "Skewness"],
+      "ans": 0
+    }
+  ],
+
+  "High": [
+    {
+      "q": "A bank tests if fraud rate increased. CI for difference: (0.02, 0.10). Interpretation?",
+      "opts": ["Fraud rate significantly increased", "No change", "Fraud decreased", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "A retailer analyzes relationship between discount rate and revenue. Slope positive and CI excludes 0:",
+      "opts": ["Discounts associated with higher revenue", "Discounts lower revenue", "No relationship", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "A tech company tests if new sign-up flow increases conversion. p=0.001:",
+      "opts": ["Very strong evidence of improvement", "No improvement", "Sample incorrect", "Variance big"],
+      "ans": 0
+    },
+    {
+      "q": "A hospital tests if surgery time decreased after training. CI: (−12, −3). Meaning?",
+      "opts": ["Surgery times decreased", "Times increased", "No change", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "A firm models customer spending vs satisfaction score. R² = 0.70:",
+      "opts": ["70% of spending variation explained by satisfaction", "Weak model", "No relationship", "Negative relationship"],
+      "ans": 0
+    },
+    {
+      "q": "A business sees CI widen after adding more markets. Likely cause?",
+      "opts": ["Greater variability in new data", "Lower variability", "Higher precision", "Mean unchanged"],
+      "ans": 0
+    },
+    {
+      "q": "A food company finds sales vs temperature strongly correlated. But cannot prove:",
+      "opts": ["Causation", "Association", "Direction", "Numerical value"],
+      "ans": 0
+    },
+    {
+      "q": "An airline evaluates flight delays. Histogram heavily right-skewed. Best center measure?",
+      "opts": ["Median", "Mean", "Mode", "Variance"],
+      "ans": 0
+    },
+    {
+      "q": "A startup tests new onboarding. CI for conversion: (−0.01, 0.15). Conclusion?",
+      "opts": ["No strong evidence of improvement", "Strong improvement", "Guaranteed improvement", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "A gym tests if personal training increases adherence. CI excludes 0:",
+      "opts": ["Significant improvement", "No improvement", "Effect negative", "Mean unchanged"],
+      "ans": 0
+    },
+    {
+      "q": "A cafe models drink sales vs temperature. Slope = 4.2. Interpretation?",
+      "opts": ["Each degree increase boosts sales by ~4.2 units", "Sales decrease", "No effect", "Zero correlation"],
+      "ans": 0
+    },
+    {
+      "q": "A retailer tests new marketing strategy. p=0.20:",
+      "opts": ["Insufficient evidence of improvement", "Strong improvement", "Guaranteed success", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "An app analyzes retention vs notification frequency. CI for slope: (−1.2, −0.3):",
+      "opts": ["More notifications reduce retention", "Increase retention", "No relationship", "Zero effect"],
+      "ans": 0
+    },
+    {
+      "q": "A finance firm runs A/B test. CI: (0.00, 0.05). Interpretation?",
+      "opts": ["Borderline/weak evidence of improvement", "Strong improvement", "Decrease", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "A hospital finds SE increases dramatically. Likely reason?",
+      "opts": ["Lower sample size or higher variance", "Higher sample size", "Lower variance", "No sampling"],
+      "ans": 0
+    },
+    {
+      "q": "A retailer compares two stores. Overlapping CIs suggest:",
+      "opts": ["Weak evidence of difference", "Strong difference", "Guaranteed difference", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "A company models profit vs ad spend. R² drops after adding new markets. Why?",
+      "opts": ["More variability in new markets", "Higher precision", "Same model fit", "Slope zero"],
+      "ans": 0
+    },
+    {
+      "q": "A startup uses regression to predict churn. Very wide CI indicates:",
+      "opts": ["Uncertainty in prediction", "Precise prediction", "Guaranteed accuracy", "Zero variability"],
+      "ans": 0
+    },
+    {
+      "q": "A hotel uses A/B test for website photos. p=0.045 at α=0.05:",
+      "opts": ["Statistically significant", "Not significant", "Variance zero", "Guaranteed improvement"],
+      "ans": 0
+    },
+    {
+      "q": "A ride-sharing company tests if driver incentives reduce cancellations. CI: (−8, −1). Meaning?",
+      "opts": ["Incentives significantly reduce cancellations", "Increase cancellations", "No effect", "Variance zero"],
+      "ans": 0
+    }
+  ]
+}

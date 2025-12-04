@@ -1,0 +1,310 @@
+{
+  "Low": [
+    {
+      "q": "What is a point estimate?",
+      "opts": ["A single value used to estimate a population parameter", "The entire population mean", "A range of possible values", "A standard deviation measure"],
+      "ans": 0
+    },
+    {
+      "q": "The sample mean is an estimate of the:",
+      "opts": ["Population mean", "Sample median", "Population size", "Population variance"],
+      "ans": 0
+    },
+    {
+      "q": "The sample proportion estimates the:",
+      "opts": ["Population proportion", "Population mean", "Sample variance", "Median"],
+      "ans": 0
+    },
+    {
+      "q": "A confidence interval provides:",
+      "opts": ["A range of likely parameter values", "Exact population value", "Sample mean only", "Sample size"],
+      "ans": 0
+    },
+    {
+      "q": "What does a 95% confidence interval mean?",
+      "opts": ["95% of such intervals contain the true parameter", "95% probability the mean is correct", "Sample mean equals population mean", "95% of the population is included"],
+      "ans": 0
+    },
+    {
+      "q": "Margin of error depends on:",
+      "opts": ["Standard error", "Range", "Median", "IQR"],
+      "ans": 0
+    },
+    {
+      "q": "A narrower confidence interval means:",
+      "opts": ["More precision", "Less precision", "Higher bias", "Incorrect mean"],
+      "ans": 0
+    },
+    {
+      "q": "Increasing confidence level makes CI:",
+      "opts": ["Wider", "Narrower", "Unchanged", "Zero"],
+      "ans": 0
+    },
+    {
+      "q": "Increasing sample size makes CI:",
+      "opts": ["Narrower", "Wider", "Impossible", "Random"],
+      "ans": 0
+    },
+    {
+      "q": "Standard error measures:",
+      "opts": ["Variability of sample mean", "Population SD", "Median", "Mode"],
+      "ans": 0
+    },
+    {
+      "q": "CI for mean uses:",
+      "opts": ["Point estimate ± margin of error", "Mean × SD", "Median × range", "Mode + variance"],
+      "ans": 0
+    },
+    {
+      "q": "A point estimate is:",
+      "opts": ["A single number summarizing a parameter", "A full interval", "Always unbiased", "A population value"],
+      "ans": 0
+    },
+    {
+      "q": "A 99% confidence interval is:",
+      "opts": ["Wider than 95% CI", "Narrower than 95% CI", "Equal to 90% CI", "Always equal width"],
+      "ans": 0
+    },
+    {
+      "q": "Confidence intervals use:",
+      "opts": ["Standard error", "Range", "Mode", "Frequency only"],
+      "ans": 0
+    },
+    {
+      "q": "If SE decreases, CI becomes:",
+      "opts": ["Narrower", "Wider", "Same", "Undefined"],
+      "ans": 0
+    },
+    {
+      "q": "CI that includes 0 for difference of means suggests:",
+      "opts": ["No significant difference", "Strong difference", "Wrong sample", "Parameter equals 0"],
+      "ans": 0
+    },
+    {
+      "q": "Which is NOT needed for CI?",
+      "opts": ["Population size", "Sample mean", "Standard error", "Confidence level"],
+      "ans": 0
+    },
+    {
+      "q": "Larger sample improves:",
+      "opts": ["Precision of estimate", "Bias", "Skewness", "Population size"],
+      "ans": 0
+    },
+    {
+      "q": "Margin of error increases when:",
+      "opts": ["Confidence level increases", "Sample size increases", "Variance decreases", "n becomes large"],
+      "ans": 0
+    },
+    {
+      "q": "If CI is extremely wide, interpretation:",
+      "opts": ["Estimate is imprecise", "Estimate precise", "Mean incorrect", "Bias zero"],
+      "ans": 0
+    }
+  ],
+
+  "Medium": [
+    {
+      "q": "CI for the population mean requires:",
+      "opts": ["Sample mean and SE", "Mode only", "Range only", "Skewness"],
+      "ans": 0
+    },
+    {
+      "q": "A larger standard deviation affects CI by:",
+      "opts": ["Making it wider", "Making it narrower", "No effect", "Making it zero"],
+      "ans": 0
+    },
+    {
+      "q": "If sample size quadruples, CI width:",
+      "opts": ["Is cut in half", "Doubles", "Stays same", "Becomes zero"],
+      "ans": 0
+    },
+    {
+      "q": "If CI for mean is (10, 20), point estimate is:",
+      "opts": ["15", "10", "20", "5"],
+      "ans": 0
+    },
+    {
+      "q": "Increasing confidence level from 90% to 99%:",
+      "opts": ["Increases margin of error", "Decreases margin", "Same margin", "Zero margin"],
+      "ans": 0
+    },
+    {
+      "q": "The formula for margin of error typically includes:",
+      "opts": ["Critical value × SE", "Median × SD", "Mode × variance", "Range / n"],
+      "ans": 0
+    },
+    {
+      "q": "Which reduces width of CI the most?",
+      "opts": ["Large sample size", "Higher confidence", "Larger variance", "Lower sample size"],
+      "ans": 0
+    },
+    {
+      "q": "CI for population proportion uses:",
+      "opts": ["p̂ ± z√(p̂(1−p̂)/n)", "mean ± SD", "median ± IQR", "variance ± range"],
+      "ans": 0
+    },
+    {
+      "q": "If CI for average spending shifts upward, it likely means:",
+      "opts": ["Higher estimated spending", "Lower spending", "More variation", "Biased sample"],
+      "ans": 0
+    },
+    {
+      "q": "A 90% CI is:",
+      "opts": ["Narrower than 95% CI", "Wider than 95% CI", "Equal to 99% CI", "Same width as 95%"],
+      "ans": 0
+    },
+    {
+      "q": "If SE is large, CI will be:",
+      "opts": ["Wide", "Narrow", "Equal to 0", "Always symmetric"],
+      "ans": 0
+    },
+    {
+      "q": "CI for difference of means includes 0. Conclusion?",
+      "opts": ["No evidence of difference", "Evidence difference exists", "Difference guaranteed", "Mean equal zero"],
+      "ans": 0
+    },
+    {
+      "q": "What happens when n increases?",
+      "opts": ["Standard error decreases", "Standard error increases", "CI wider", "Mean becomes zero"],
+      "ans": 0
+    },
+    {
+      "q": "CI width depends on:",
+      "opts": ["n, SE, confidence level", "Median", "Mode", "Population size only"],
+      "ans": 0
+    },
+    {
+      "q": "A 95% CI for mean is wide. Why?",
+      "opts": ["High variability or small n", "Low variability and large n", "Mean zero", "Bias absent"],
+      "ans": 0
+    },
+    {
+      "q": "Which CI indicates most precise estimate?",
+      "opts": ["(50, 52)", "(50, 60)", "(40, 90)", "(10, 80)"],
+      "ans": 0
+    },
+    {
+      "q": "A retailer sees CI for daily sales narrow. Why?",
+      "opts": ["Larger sample or less variability", "More variability", "Less data", "Lower mean"],
+      "ans": 0
+    },
+    {
+      "q": "A confidence interval is fundamentally:",
+      "opts": ["A measure of estimation uncertainty", "A measure of bias", "A precise parameter", "A histogram"],
+      "ans": 0
+    },
+    {
+      "q": "If population SD unknown, CI uses:",
+      "opts": ["t-distribution", "normal distribution only", "uniform distribution", "Poisson distribution"],
+      "ans": 0
+    },
+    {
+      "q": "Importance of CI in decision-making:",
+      "opts": ["Shows range of plausible values", "Predicts exact value", "Eliminates sampling error", "Always equals population"],
+      "ans": 0
+    }
+  ],
+
+  "High": [
+    {
+      "q": "A tech company sees CI for conversion rate widen. Likely cause?",
+      "opts": ["Greater variation or smaller n", "Lower variation", "Bigger sample", "Bias removed"],
+      "ans": 0
+    },
+    {
+      "q": "A hospital CI for wait time drops from (40, 60) to (45, 55). Interpretation?",
+      "opts": ["Estimate became more precise", "Wait time increased", "Wait time decreased", "Mean unchanged"],
+      "ans": 0
+    },
+    {
+      "q": "A 95% CI for monthly revenue (20k, 25k). Which is true?",
+      "opts": ["Revenue likely between these values", "Revenue always equals 22.5k", "Confidence equals 100%", "Parameter equals 25k"],
+      "ans": 0
+    },
+    {
+      "q": "If CI for difference in satisfaction excludes 0:",
+      "opts": ["Significant difference exists", "No difference", "Bias present", "Sample incorrect"],
+      "ans": 0
+    },
+    {
+      "q": "A highly variable dataset affects CI by:",
+      "opts": ["Making it wider", "Narrowing it", "Eliminating uncertainty", "Flattening distribution"],
+      "ans": 0
+    },
+    {
+      "q": "A retailer sees CI shift downward but remain narrow. Interpretation?",
+      "opts": ["Lower but stable parameter estimate", "Higher parameter", "More variation", "Sampling bias"],
+      "ans": 0
+    },
+    {
+      "q": "Increasing sample size affects CI how?",
+      "opts": ["More precision, narrower CI", "Less precision", "Wider CI", "None"],
+      "ans": 0
+    },
+    {
+      "q": "A CI for average defect rate from 3% to 15% indicates:",
+      "opts": ["High uncertainty", "High precision", "Zero defects", "Stable defects"],
+      "ans": 0
+    },
+    {
+      "q": "A CI based on very small sample:",
+      "opts": ["Likely wide and unreliable", "Very precise", "Zero margin", "Always normal"],
+      "ans": 0
+    },
+    {
+      "q": "Increasing confidence from 95% to 99% means:",
+      "opts": ["CI becomes wider", "CI becomes narrower", "Mean decreases", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "If CI for slope excludes 0:",
+      "opts": ["Significant predictive relationship", "No predictive value", "Slope equals zero", "Model invalid"],
+      "ans": 0
+    },
+    {
+      "q": "SE increases most when:",
+      "opts": ["Variance high and n small", "Variance low", "n large", "Mean high"],
+      "ans": 0
+    },
+    {
+      "q": "A very narrow CI indicates:",
+      "opts": ["Precise estimate", "Imprecise estimate", "Bias high", "No variation"],
+      "ans": 0
+    },
+    {
+      "q": "CI for increase in ratings: (−0.5, 0.3). Interpretation?",
+      "opts": ["No significant improvement", "Strong improvement", "Ratings increased", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "An e-commerce CI shifts from (100, 120) to (130, 150). Why?",
+      "opts": ["Revenue increased", "Revenue decreased", "Less precise", "Mean unchanged"],
+      "ans": 0
+    },
+    {
+      "q": "Two CIs: Store A (40, 41), Store B (35, 50). Which more stable?",
+      "opts": ["Store A", "Store B", "Same", "Cannot tell"],
+      "ans": 0
+    },
+    {
+      "q": "If CI contains very extreme values:",
+      "opts": ["Poor reliability", "High precision", "Narrow estimate", "Exact prediction"],
+      "ans": 0
+    },
+    {
+      "q": "Hospital CI for surgery time shifts upward. Interpretation?",
+      "opts": ["Longer surgeries on average", "Shorter surgeries", "Less variation", "Bias increased"],
+      "ans": 0
+    },
+    {
+      "q": "A business sees CI widen after adding more data. Why?",
+      "opts": ["More variability in new data", "Better precision", "Stable process", "Fewer outliers"],
+      "ans": 0
+    },
+    {
+      "q": "If CI indicates no significant change after a policy change:",
+      "opts": ["Policy likely had little effect", "Policy strong effect", "Bias high", "Wrong sample"],
+      "ans": 0
+    }
+  ]
+}

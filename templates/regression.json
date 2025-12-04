@@ -1,0 +1,310 @@
+{
+  "Low": [
+    {
+      "q": "What is the goal of simple linear regression?",
+      "opts": ["To model the relationship between one predictor and one outcome", "To compare two means", "To measure skewness", "To estimate variance"],
+      "ans": 0
+    },
+    {
+      "q": "In regression, the dependent variable is also called:",
+      "opts": ["Response variable", "Independent variable", "Predictor", "Residual"],
+      "ans": 0
+    },
+    {
+      "q": "The independent variable is also called:",
+      "opts": ["Predictor", "Outcome", "Response", "Residual"],
+      "ans": 0
+    },
+    {
+      "q": "What does the slope represent?",
+      "opts": ["Change in Y for a one-unit change in X", "Average of X", "Intercept value", "Difference of means"],
+      "ans": 0
+    },
+    {
+      "q": "What does the intercept represent?",
+      "opts": ["Predicted value of Y when X = 0", "Change in X when Y changes", "Median value", "Random error"],
+      "ans": 0
+    },
+    {
+      "q": "Residuals are:",
+      "opts": ["Observed minus predicted values", "Predicted means", "Sample errors", "Population parameters"],
+      "ans": 0
+    },
+    {
+      "q": "A positive slope means:",
+      "opts": ["X increases → Y tends to increase", "X increases → Y decreases", "X and Y independent", "No relationship"],
+      "ans": 0
+    },
+    {
+      "q": "A negative slope means:",
+      "opts": ["X increases → Y decreases", "X increases → Y increases", "Same direction", "No relationship"],
+      "ans": 0
+    },
+    {
+      "q": "Correlation measures:",
+      "opts": ["Strength and direction of linear relationship", "Mean difference", "Variance of X", "Skewness"],
+      "ans": 0
+    },
+    {
+      "q": "Correlation values range from:",
+      "opts": ["−1 to +1", "0 to 1", "−10 to 10", "1 to 100"],
+      "ans": 0
+    },
+    {
+      "q": "If r = 0.9:",
+      "opts": ["Strong positive linear relationship", "Strong negative", "Weak relationship", "No relationship"],
+      "ans": 0
+    },
+    {
+      "q": "If r = −0.8:",
+      "opts": ["Strong negative relationship", "Strong positive", "Weak positive", "No correlation"],
+      "ans": 0
+    },
+    {
+      "q": "A correlation of 0 means:",
+      "opts": ["No linear relationship", "No relationship at all", "Strong relationship", "Perfect curve"],
+      "ans": 0
+    },
+    {
+      "q": "Regression is primarily used for:",
+      "opts": ["Prediction", "Sampling", "Categorization", "Bias reduction"],
+      "ans": 0
+    },
+    {
+      "q": "Best-fit line minimizes:",
+      "opts": ["Sum of squared residuals", "Mean", "Median", "Variance"],
+      "ans": 0
+    },
+    {
+      "q": "Residuals close to zero indicate:",
+      "opts": ["Good model fit", "Poor fit", "Skewed data", "Wrong sample"],
+      "ans": 0
+    },
+    {
+      "q": "If slope = 0:",
+      "opts": ["Predictor has no linear effect", "Strong effect exists", "Median equals mean", "Variance large"],
+      "ans": 0
+    },
+    {
+      "q": "Scatterplots help identify:",
+      "opts": ["Relationship pattern", "Median", "Range only", "Mode"],
+      "ans": 0
+    },
+    {
+      "q": "Regression equation format is:",
+      "opts": ["Ŷ = b₀ + b₁X", "Y = X₁ + X₂", "Mean = SD × n", "p̂ = x/n"],
+      "ans": 0
+    },
+    {
+      "q": "Coefficient of determination (R²) measures:",
+      "opts": ["Proportion of variance explained by model", "Median prediction", "Sample mean", "Variance of X"],
+      "ans": 0
+    }
+  ],
+
+  "Medium": [
+    {
+      "q": "A high R² value means:",
+      "opts": ["Model explains large portion of variance", "Model explains little variance", "Slope must be negative", "Data skewed"],
+      "ans": 0
+    },
+    {
+      "q": "If residual plot shows random scatter:",
+      "opts": ["Model assumptions likely met", "Strong bias present", "Nonlinear trend", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "Which violates linear regression assumptions?",
+      "opts": ["Nonconstant variance (heteroscedasticity)", "Random residuals", "Linear trend", "Small SD"],
+      "ans": 0
+    },
+    {
+      "q": "Which is NOT an assumption of linear regression?",
+      "opts": ["Residuals must be uniform", "Linearity", "Constant variance", "Independence"],
+      "ans": 0
+    },
+    {
+      "q": "If R² = 0.50, interpretation?",
+      "opts": ["50% of variation in Y explained by X", "X predicts Y perfectly", "No relationship", "Y explains X fully"],
+      "ans": 0
+    },
+    {
+      "q": "If slope significantly positive (CI excludes 0):",
+      "opts": ["Predictor has meaningful positive effect", "Predictor irrelevant", "No relationship", "SD zero"],
+      "ans": 0
+    },
+    {
+      "q": "A company tests if advertising predicts sales. Slope CI excludes 0. Conclusion?",
+      "opts": ["Advertising significantly predicts sales", "No effect", "Negative effect only", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "If regression residuals show a curved pattern:",
+      "opts": ["Nonlinear relationship", "Good linear fit", "Perfect prediction", "Random noise"],
+      "ans": 0
+    },
+    {
+      "q": "A very small p-value for slope suggests:",
+      "opts": ["Strong evidence predictor affects outcome", "No effect", "Weak relationship", "Mean equals zero"],
+      "ans": 0
+    },
+    {
+      "q": "A negative slope means:",
+      "opts": ["X increases → Y decreases", "X increases → Y increases", "Strong positive effect", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "A model with R² = 0.02 implies:",
+      "opts": ["Predictor explains almost none of Y's variance", "Strong effect", "Perfect prediction", "Outliers removed"],
+      "ans": 0
+    },
+    {
+      "q": "Outliers in regression mainly affect:",
+      "opts": ["Slope and model fit", "Mean only", "Median only", "IQR"],
+      "ans": 0
+    },
+    {
+      "q": "If CI for slope includes 0:",
+      "opts": ["Predictor may have no effect", "Predictor strong", "Strong positivity", "Perfect fit"],
+      "ans": 0
+    },
+    {
+      "q": "Residuals represent:",
+      "opts": ["Errors in prediction", "Actual trend", "Intercept", "Mean difference"],
+      "ans": 0
+    },
+    {
+      "q": "Best visual tool to assess linearity:",
+      "opts": ["Scatterplot", "Boxplot", "Histogram", "Pie chart"],
+      "ans": 0
+    },
+    {
+      "q": "If residuals increase as X increases:",
+      "opts": ["Heteroscedasticity present", "Homoscedasticity present", "Slope positive", "Slope zero"],
+      "ans": 0
+    },
+    {
+      "q": "Regression used for:",
+      "opts": ["Prediction and explanation", "Sampling only", "Variance reduction only", "Bias removal"],
+      "ans": 0
+    },
+    {
+      "q": "A company finds R²=0.90. Means:",
+      "opts": ["Model predicts outcome very well", "Model predicts poorly", "No relationship", "High skew"],
+      "ans": 0
+    },
+    {
+      "q": "Fact: Correlation does NOT imply:",
+      "opts": ["Causation", "Relationship", "Association", "Direction"],
+      "ans": 0
+    },
+    {
+      "q": "If two models both significant, choose the one with:",
+      "opts": ["Higher R² (if assumptions met)", "Lower R²", "More residual error", "Wider CI for slope"],
+      "ans": 0
+    }
+  ],
+
+  "High": [
+    {
+      "q": "A retail manager models sales from foot traffic. If slope = 2.5, interpretation?",
+      "opts": ["Each additional customer increases sales by 2.5 units", "Sales decrease", "No effect", "Model random"],
+      "ans": 0
+    },
+    {
+      "q": "If CI for slope is (0.4, 0.6):",
+      "opts": ["Positive, significant predictor", "No relationship", "Zero slope", "Negative relationship"],
+      "ans": 0
+    },
+    {
+      "q": "A tech firm sees residuals funnel-shaped. Interpretation?",
+      "opts": ["Heteroscedasticity → variance increases with X", "Good model fit", "No issues", "Normal residuals"],
+      "ans": 0
+    },
+    {
+      "q": "A fitness app models calories burned vs workout time. If R² = 0.92:",
+      "opts": ["Workout time explains 92% of calorie variation", "Weak predictor", "No effect", "Zero variance"],
+      "ans": 0
+    },
+    {
+      "q": "Real estate regression: price vs size. Slope CI excludes 0. Means:",
+      "opts": ["Size significantly predicts price", "Size irrelevant", "Slope zero", "Price random"],
+      "ans": 0
+    },
+    {
+      "q": "Marketing analysis finds a nonlinear pattern in residuals. Next step?",
+      "opts": ["Try polynomial or nonlinear model", "Ignore pattern", "Reduce n", "Set slope to zero"],
+      "ans": 0
+    },
+    {
+      "q": "Outliers influence regression mainly by:",
+      "opts": ["Distorting slope and predictions", "Improving accuracy", "Increasing R² always", "Making residuals 0"],
+      "ans": 0
+    },
+    {
+      "q": "If R² high but residuals non-random:",
+      "opts": ["Model misses pattern (bias)", "Model perfect", "Slope zero", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "Slope of −0.3 indicates:",
+      "opts": ["Small negative effect", "Strong positive", "Strong negative", "No effect"],
+      "ans": 0
+    },
+    {
+      "q": "If CI for slope = (−0.4, 0.2):",
+      "opts": ["Slope may be zero → not significant", "Significant positive effect", "Significant negative effect", "Perfect fit"],
+      "ans": 0
+    },
+    {
+      "q": "Retail forecasting: R² drops from .75 to .30. Meaning?",
+      "opts": ["Model explains much less variance now", "Model improved", "Variance zero", "More precision"],
+      "ans": 0
+    },
+    {
+      "q": "If predictor has large p-value:",
+      "opts": ["No strong evidence predictor influences Y", "Strong effect", "Predictor mandatory", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "A startup uses regression to analyze ad spending. Slope small but p-value tiny:",
+      "opts": ["Statistically significant but small practical effect", "Large practical effect", "Model incorrect", "No relationship"],
+      "ans": 0
+    },
+    {
+      "q": "Heteroscedasticity mainly affects:",
+      "opts": ["Standard errors and inference accuracy", "Mean", "Median", "Sample size"],
+      "ans": 0
+    },
+    {
+      "q": "A very narrow CI for slope implies:",
+      "opts": ["Precise estimate of effect", "Imprecise estimate", "No effect", "Bias present"],
+      "ans": 0
+    },
+    {
+      "q": "If residuals highly non-normal but sample large:",
+      "opts": ["Regression still reliable by CLT", "Regression invalid", "Must drop sample", "Slope zero"],
+      "ans": 0
+    },
+    {
+      "q": "Predictor X strongly correlated with predictor Z. Problem?",
+      "opts": ["Multicollinearity risk", "Heteroscedasticity", "Weak model", "No issue"],
+      "ans": 0
+    },
+    {
+      "q": "Multicollinearity causes:",
+      "opts": ["Unstable slope estimates", "Higher R² always", "Perfect predictions", "Bias always zero"],
+      "ans": 0
+    },
+    {
+      "q": "A model with R²=0.05 but slope significant:",
+      "opts": ["Predictor has effect but weak explanatory power", "Strong explanatory power", "No effect", "Model perfect"],
+      "ans": 0
+    },
+    {
+      "q": "A coffee shop models wait time based on staff count. CI for slope negative:",
+      "opts": ["More staff reduces wait time", "More staff increases wait time", "No change", "Mean zero"],
+      "ans": 0
+    }
+  ]
+}

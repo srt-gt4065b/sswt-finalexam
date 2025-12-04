@@ -1,0 +1,310 @@
+{
+  "Low": [
+    {
+      "q": "What is the definition of probability?",
+      "opts": ["A measure of how likely an event is to occur", "The average outcome", "A measure of spread", "The smallest value observed"],
+      "ans": 0
+    },
+    {
+      "q": "A probability value must be between:",
+      "opts": ["0 and 1", "-1 and 1", "1 and 100", "0 and infinity"],
+      "ans": 0
+    },
+    {
+      "q": "If P(A) = 0, what does this mean?",
+      "opts": ["The event A is impossible", "A will always occur", "A occurs half the time", "A occurs more than B"],
+      "ans": 0
+    },
+    {
+      "q": "If P(A) = 1, what does this mean?",
+      "opts": ["A always occurs", "A never occurs", "A occurs rarely", "A is dependent on B"],
+      "ans": 0
+    },
+    {
+      "q": "Two events that cannot occur at the same time are called:",
+      "opts": ["Mutually exclusive", "Independent", "Complementary", "Joint events"],
+      "ans": 0
+    },
+    {
+      "q": "If two events are independent, then:",
+      "opts": ["P(A and B) = P(A) × P(B)", "P(A and B) = 0", "P(A and B) = P(A)", "P(A) must equal P(B)"],
+      "ans": 0
+    },
+    {
+      "q": "The complement of event A is:",
+      "opts": ["All outcomes not in A", "All outcomes in A", "Half of event A", "A repeated"],
+      "ans": 0
+    },
+    {
+      "q": "P(A) + P(Aᶜ) equals:",
+      "opts": ["1", "0", "2", "0.5"],
+      "ans": 0
+    },
+    {
+      "q": "The sum of probabilities of all outcomes in a sample space must be:",
+      "opts": ["1", "0", "Greater than 1", "Less than 1"],
+      "ans": 0
+    },
+    {
+      "q": "If two events are mutually exclusive, P(A and B) =",
+      "opts": ["0", "1", "P(A)", "P(B)"],
+      "ans": 0
+    },
+    {
+      "q": "A fair coin lands heads. The probability of tails next flip is:",
+      "opts": ["0.5", "0", "1", "Cannot be determined"],
+      "ans": 0
+    },
+    {
+      "q": "A die has 6 sides. Probability of rolling a 3 is:",
+      "opts": ["1/6", "1/3", "1/12", "1/2"],
+      "ans": 0
+    },
+    {
+      "q": "If two events cannot occur together, they are:",
+      "opts": ["Mutually exclusive", "Independent", "Complementary", "Identical"],
+      "ans": 0
+    },
+    {
+      "q": "Probability of an impossible event is:",
+      "opts": ["0", "1", "0.5", "Undefined"],
+      "ans": 0
+    },
+    {
+      "q": "Probability of a certain event is:",
+      "opts": ["1", "0", "0.25", "0.75"],
+      "ans": 0
+    },
+    {
+      "q": "Which probability rule applies to mutually exclusive events?",
+      "opts": ["Addition rule", "Multiplication rule", "Bayes' rule", "Z-score rule"],
+      "ans": 0
+    },
+    {
+      "q": "The probability of the complement is calculated as:",
+      "opts": ["1 – P(A)", "P(A) – 1", "P(A) × 2", "P(A) + 1"],
+      "ans": 0
+    },
+    {
+      "q": "If P(A) = 0.7, what is P(Aᶜ)?",
+      "opts": ["0.3", "0.7", "1.7", "0"],
+      "ans": 0
+    },
+    {
+      "q": "Which is the sample space for flipping a coin once?",
+      "opts": ["{H, T}", "{1,2,3}", "{H}", "{0,1,2}"],
+      "ans": 0
+    },
+    {
+      "q": "Which is a valid probability?",
+      "opts": ["0.25", "–0.2", "1.5", "2"],
+      "ans": 0
+    }
+  ],
+
+  "Medium": [
+    {
+      "q": "Events A and B are independent if:",
+      "opts": ["P(A and B) = P(A) × P(B)", "P(A and B) = 0", "P(A) = P(B)", "P(A or B) = P(A) + P(B)"],
+      "ans": 0
+    },
+    {
+      "q": "If events A and B are mutually exclusive, which must be true?",
+      "opts": ["P(A and B) = 0", "P(A) = 0", "P(B) = 0", "P(A or B) = 0"],
+      "ans": 0
+    },
+    {
+      "q": "Conditional probability P(A|B) means:",
+      "opts": ["Probability of A given B has occurred", "Probability of B given A", "Probability of A only", "Probability of both A and B"],
+      "ans": 0
+    },
+    {
+      "q": "If P(A)=0.5 and P(B)=0.5 and they are independent, P(A and B) =",
+      "opts": ["0.25", "1", "0.5", "0"],
+      "ans": 0
+    },
+    {
+      "q": "If P(A|B)=P(A), then events A and B are:",
+      "opts": ["Independent", "Dependent", "Mutually exclusive", "Identical"],
+      "ans": 0
+    },
+    {
+      "q": "For dependent events, P(A and B) equals:",
+      "opts": ["P(A) × P(B|A)", "P(A) + P(B)", "P(A) × P(B)", "1"],
+      "ans": 0
+    },
+    {
+      "q": "If P(A)=0.3 and P(B)=0.4 and mutually exclusive, P(A or B) =",
+      "opts": ["0.7", "0.12", "0.3", "0.1"],
+      "ans": 0
+    },
+    {
+      "q": "Which rule helps find P(A or B)?",
+      "opts": ["Addition rule", "Multiplication rule", "Bayes’ rule", "Normal rule"],
+      "ans": 0
+    },
+    {
+      "q": "Which is an example of a conditional probability?",
+      "opts": ["Probability of rain given cloudy", "Probability of a fair coin landing heads", "Probability of rolling a die", "Probability of a number being positive"],
+      "ans": 0
+    },
+    {
+      "q": "A complement has probability:",
+      "opts": ["1 minus event probability", "1 divided by probability", "Probability plus 1", "Probability times 2"],
+      "ans": 0
+    },
+    {
+      "q": "If A and B are independent, correlation between them is:",
+      "opts": ["0", "1", "-1", "Undefined"],
+      "ans": 0
+    },
+    {
+      "q": "In a deck of cards, P(heart) = 13/52. This equals:",
+      "opts": ["0.25", "0.13", "0.5", "0.75"],
+      "ans": 0
+    },
+    {
+      "q": "Probability of selecting an even number from {1,2,3,4}:",
+      "opts": ["0.5", "0.25", "1", "0"],
+      "ans": 0
+    },
+    {
+      "q": "If two events have no outcomes in common, they are:",
+      "opts": ["Mutually exclusive", "Independent", "Conditional", "Joint"],
+      "ans": 0
+    },
+    {
+      "q": "P(A and B) for mutually exclusive events equals:",
+      "opts": ["0", "1", "P(A)", "P(B)"],
+      "ans": 0
+    },
+    {
+      "q": "If P(A)=0.6 and P(Aᶜ)=0.4, what is true?",
+      "opts": ["They sum to 1", "A is impossible", "A always happens", "B is more likely"],
+      "ans": 0
+    },
+    {
+      "q": "A probability distribution must satisfy:",
+      "opts": ["All probabilities sum to 1", "All probabilities sum to 0", "One outcome has probability 1", "All outcomes equal"],
+      "ans": 0
+    },
+    {
+      "q": "If P(A and B) = 0.1 and P(B) = 0.5, then P(A|B) =",
+      "opts": ["0.2", "0.5", "0.4", "0.02"],
+      "ans": 0
+    },
+    {
+      "q": "If A and B independent, P(A or B) =",
+      "opts": ["P(A)+P(B)-P(A)P(B)", "P(A)+P(B)", "P(A)×P(B)", "1"],
+      "ans": 0
+    },
+    {
+      "q": "A student chooses 1 of 4 answers at random. Probability correct:",
+      "opts": ["0.25", "0.5", "0.75", "1"],
+      "ans": 0
+    }
+  ],
+
+  "High": [
+    {
+      "q": "A factory reports defect probability 0.02. What is the chance of no defects in 50 items (approx)?",
+      "opts": ["(0.98)^50", "0.02×50", "1−0.02^50", "0"],
+      "ans": 0
+    },
+    {
+      "q": "A call center receives on average 5 calls/min (Poisson). Probability of exactly 3 calls:",
+      "opts": ["e^{-5}5^3/3!", "5/3", "3/5", "Cannot determine"],
+      "ans": 0
+    },
+    {
+      "q": "A web server fails with probability 0.01. Probability it works 5 days in a row:",
+      "opts": ["0.99^5", "0.01^5", "0.99×5", "0.01×5"],
+      "ans": 0
+    },
+    {
+      "q": "A manufacturer tests if machines fail independently. This means:",
+      "opts": ["One failure does not change another’s chance", "Failures always linked", "Failures always occur together", "Failures mutually exclusive"],
+      "ans": 0
+    },
+    {
+      "q": "A phone breaks with probability 0.2. Probability it survives 3 drops:",
+      "opts": ["0.8^3", "0.2^3", "0.8×3", "0.2×3"],
+      "ans": 0
+    },
+    {
+      "q": "Probability of at least one success in 3 trials, success prob 0.4:",
+      "opts": ["1 − (0.6)^3", "0.4^3", "0.6^3", "0.4×3"],
+      "ans": 0
+    },
+    {
+      "q": "Two events are independent if and only if:",
+      "opts": ["P(A and B)=P(A)P(B)", "P(A|B)=0", "P(A)>P(B)", "P(A)=0"],
+      "ans": 0
+    },
+    {
+      "q": "A retailer estimates probability customer buys again = 0.7. Probability two customers buy again:",
+      "opts": ["0.7^2", "0.7×2", "0.3×2", "0.7^3"],
+      "ans": 0
+    },
+    {
+      "q": "Probability of rainy day is 0.3. Probability of 3 rainy days in a row:",
+      "opts": ["0.3^3", "0.3×3", "0.7^3", "1−0.3^3"],
+      "ans": 0
+    },
+    {
+      "q": "A coin is biased: P(H)=0.6. Probability of 2 heads in 2 flips:",
+      "opts": ["0.36", "0.6", "0.12", "0.4"],
+      "ans": 0
+    },
+    {
+      "q": "A website uptime is 0.99 per day. Uptime for 7 days:",
+      "opts": ["0.99^7", "0.99×7", "0.7", "1−0.99"],
+      "ans": 0
+    },
+    {
+      "q": "A product defect rate is 5%. Probability that 10 items have no defects:",
+      "opts": ["0.95^10", "0.05^10", "0.95×10", "1−0.95"],
+      "ans": 0
+    },
+    {
+      "q": "If P(A)=0.4, P(B)=0.5, independent, P(A and B)=?",
+      "opts": ["0.2", "0.1", "0.9", "0.4"],
+      "ans": 0
+    },
+    {
+      "q": "If daily rainfall follows Poisson(λ=2), probability of zero rainfall:",
+      "opts": ["e^{-2}", "2e^{-2}", "2^2e^{-2}/2!", "1−e^{-2}"],
+      "ans": 0
+    },
+    {
+      "q": "If P(success)=0.9, probability of at least one success in 2 trials:",
+      "opts": ["1−0.1^2", "0.9^2", "0.1^2", "0.9×2"],
+      "ans": 0
+    },
+    {
+      "q": "Probability of Internet outage is 0.02/day. No outage for 30 days:",
+      "opts": ["0.98^30", "0.02^30", "0.98×30", "1−0.98"],
+      "ans": 0
+    },
+    {
+      "q": "If store visits follow Poisson(λ=10), probability of exactly 10 visits:",
+      "opts": ["e^{-10}10^{10}/10!", "10!", "10/10!", "1/e"],
+      "ans": 0
+    },
+    {
+      "q": "If P(A)=0.7 and P(B)=0.6 and events independent, P(A or B)=?",
+      "opts": ["0.7 + 0.6 − 0.42", "0.7 + 0.6", "0.7×0.6", "0.42"],
+      "ans": 0
+    },
+    {
+      "q": "A fair die is rolled twice. Probability sum equals 7:",
+      "opts": ["6/36", "1/6", "1/12", "7/36"],
+      "ans": 0
+    },
+    {
+      "q": "A company estimates a 95% chance a server stays online today. Probability of going offline:",
+      "opts": ["0.05", "0.95", "0", "1"],
+      "ans": 0
+    }
+  ]
+}

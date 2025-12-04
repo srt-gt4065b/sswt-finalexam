@@ -1,0 +1,310 @@
+{
+  "Low": [
+    {
+      "q": "What is the null hypothesis (H₀)?",
+      "opts": ["A statement of no effect or difference", "A claim large difference exists", "A proven fact", "An alternative claim"],
+      "ans": 0
+    },
+    {
+      "q": "What is the alternative hypothesis (H₁)?",
+      "opts": ["A claim of effect or difference", "A claim of no difference", "A certain fact", "Always false"],
+      "ans": 0
+    },
+    {
+      "q": "Which symbol represents the significance level?",
+      "opts": ["α", "β", "μ", "σ"],
+      "ans": 0
+    },
+    {
+      "q": "A p-value measures:",
+      "opts": ["Strength of evidence against H₀", "Effect size", "Sample mean", "Standard deviation"],
+      "ans": 0
+    },
+    {
+      "q": "We reject H₀ when:",
+      "opts": ["p-value < α", "p-value > α", "p-value = 1", "α = 1"],
+      "ans": 0
+    },
+    {
+      "q": "Failing to reject H₀ means:",
+      "opts": ["Not enough evidence against H₀", "H₀ is proven true", "H₀ is false", "α = 0"],
+      "ans": 0
+    },
+    {
+      "q": "Rejecting a true H₀ is:",
+      "opts": ["Type I error", "Type II error", "Sampling error", "Measurement error"],
+      "ans": 0
+    },
+    {
+      "q": "Failing to reject a false H₀ is:",
+      "opts": ["Type II error", "Type I error", "Bias", "Random error"],
+      "ans": 0
+    },
+    {
+      "q": "If α = 0.05, it means:",
+      "opts": ["5% chance of Type I error", "5% chance of Type II error", "95% error rate", "Always reject H₀"],
+      "ans": 0
+    },
+    {
+      "q": "Statistical significance means:",
+      "opts": ["Strong evidence against H₀", "Practical importance", "Mean equals median", "Zero variance"],
+      "ans": 0
+    },
+    {
+      "q": "A two-tailed test checks:",
+      "opts": ["Change in either direction", "Increase only", "Decrease only", "Random variation"],
+      "ans": 0
+    },
+    {
+      "q": "A smaller p-value indicates:",
+      "opts": ["Stronger evidence against H₀", "Evidence for H₀", "Higher SD", "More bias"],
+      "ans": 0
+    },
+    {
+      "q": "Critical value defines:",
+      "opts": ["Boundary of rejection region", "Sample median", "Population average", "Mode"],
+      "ans": 0
+    },
+    {
+      "q": "If p-value = 0.20 and α=0.05, decision:",
+      "opts": ["Fail to reject H₀", "Reject H₀", "Accept H₀", "Lower α"],
+      "ans": 0
+    },
+    {
+      "q": "Higher α (e.g., 0.10 instead of 0.01) means:",
+      "opts": ["Easier to reject H₀", "Harder to reject H₀", "Always reject H₀", "Means equal"],
+      "ans": 0
+    },
+    {
+      "q": "The power of a test is:",
+      "opts": ["Probability of rejecting false H₀", "Probability of Type I error", "1 - α", "Always 0.5"],
+      "ans": 0
+    },
+    {
+      "q": "Which is a one-tailed hypothesis?",
+      "opts": ["H₁: μ > μ₀", "H₁: μ ≠ μ₀", "H₁: μ = μ₀", "H₁: μ = 0"],
+      "ans": 0
+    },
+    {
+      "q": "The test statistic measures:",
+      "opts": ["Distance from H₀", "Median", "Mode", "IQR"],
+      "ans": 0
+    },
+    {
+      "q": "If H₀: μ = 10, valid alternative?",
+      "opts": ["μ ≠ 10", "μ = 10", "μ = μ₀", "μ random"],
+      "ans": 0
+    },
+    {
+      "q": "Which statement is correct?",
+      "opts": ["Failing to reject H₀ does not prove it true", "Failing to reject proves H₀ true", "Rejecting H₀ proves H₀ false", "p-value equals α"],
+      "ans": 0
+    }
+  ],
+
+  "Medium": [
+    {
+      "q": "If α decreases (e.g., 0.05 → 0.01), what happens?",
+      "opts": ["Harder to reject H₀", "Easier to reject H₀", "No change", "Always reject"],
+      "ans": 0
+    },
+    {
+      "q": "If sample size increases, p-value tends to:",
+      "opts": ["Decrease (more power)", "Increase", "Always 1", "Always 0"],
+      "ans": 0
+    },
+    {
+      "q": "Which scenario increases Type II error?",
+      "opts": ["Small sample size", "Large sample", "High α", "Low SD"],
+      "ans": 0
+    },
+    {
+      "q": "Higher power means:",
+      "opts": ["Better chance of detecting real effect", "Harder to detect effect", "Always reject H₀", "Mean increases"],
+      "ans": 0
+    },
+    {
+      "q": "Two-tailed test used when:",
+      "opts": ["Any direction difference matters", "Only increase matters", "Only decrease matters", "Mean irrelevant"],
+      "ans": 0
+    },
+    {
+      "q": "Which does NOT affect p-value?",
+      "opts": ["Median", "Sample size", "Test statistic", "Variance"],
+      "ans": 0
+    },
+    {
+      "q": "A test with α = 0.01 instead of 0.05:",
+      "opts": ["Reduces Type I error chance", "Increases Type I error chance", "Equal to β", "Increases p-value"],
+      "ans": 0
+    },
+    {
+      "q": "If p-value = 0.049 at α = 0.05:",
+      "opts": ["Statistically significant", "Not significant", "Mean = 0", "SD = 0"],
+      "ans": 0
+    },
+    {
+      "q": "If p-value = 0.20 at α = 0.10:",
+      "opts": ["Fail to reject H₀", "Reject H₀", "Cannot decide", "Always reject"],
+      "ans": 0
+    },
+    {
+      "q": "A very small p-value implies:",
+      "opts": ["Observed data unlikely under H₀", "H₀ proven true", "Sample wrong", "Variance too low"],
+      "ans": 0
+    },
+    {
+      "q": "If p-value near 1:",
+      "opts": ["Strong evidence for H₀", "Strong evidence against H₀", "Variance zero", "Mean zero"],
+      "ans": 0
+    },
+    {
+      "q": "If α increases (0.05 → 0.10), Type I error risk:",
+      "opts": ["Increases", "Decreases", "No effect", "Becomes zero"],
+      "ans": 0
+    },
+    {
+      "q": "If α decreases (0.05 → 0.01), Type II error risk:",
+      "opts": ["Increases", "Decreases", "Eliminated", "Constant"],
+      "ans": 0
+    },
+    {
+      "q": "A company wants fewer false alarms (Type I). What should they do?",
+      "opts": ["Lower α", "Raise α", "Increase SD", "Remove outliers"],
+      "ans": 0
+    },
+    {
+      "q": "A retailer wants to avoid missing real effects (Type II). They should:",
+      "opts": ["Increase sample size", "Decrease sample size", "Lower α excessively", "Ignore variance"],
+      "ans": 0
+    },
+    {
+      "q": "Large test statistic yields:",
+      "opts": ["Small p-value", "Large p-value", "Mean zero", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "Which scenario uses one-tailed test?",
+      "opts": ["Testing if mean > μ₀", "Testing if mean ≠ μ₀", "Testing if mean = μ₀", "Testing if SD = 0"],
+      "ans": 0
+    },
+    {
+      "q": "If sample results lie close to H₀ mean:",
+      "opts": ["High p-value", "Low p-value", "Always reject", "Always accept"],
+      "ans": 0
+    },
+    {
+      "q": "Reduce Type II error by:",
+      "opts": ["Larger sample size", "Smaller sample", "Larger SD", "Increasing bias"],
+      "ans": 0
+    },
+    {
+      "q": "Rejecting H₀ when p-value < α implies:",
+      "opts": ["Strong evidence against H₀", "Weak evidence", "H₀ true", "H₁ false"],
+      "ans": 0
+    }
+  ],
+
+  "High": [
+    {
+      "q": "A hospital tests if new system reduces wait time. p-value = 0.01 at α=0.05. Interpretation?",
+      "opts": ["Strong evidence wait time decreased", "No change", "Weak evidence", "Wait time increased"],
+      "ans": 0
+    },
+    {
+      "q": "A restaurant tests if satisfaction increased: p = 0.20. Interpretation?",
+      "opts": ["Insufficient evidence of improvement", "Strong improvement", "Guaranteed increase", "Incorrect sample"],
+      "ans": 0
+    },
+    {
+      "q": "Website A vs B conversion test: p = 0.001. Meaning?",
+      "opts": ["Strong evidence difference exists", "No difference exists", "Sample error", "Equal means"],
+      "ans": 0
+    },
+    {
+      "q": "A call center’s p-value = 0.90 for difference. Meaning?",
+      "opts": ["No evidence of change", "Strong change", "Decreased calls", "Model wrong"],
+      "ans": 0
+    },
+    {
+      "q": "Restaurant tests if average rating > 4.5; p = 0.03 at α = 0.01:",
+      "opts": ["Fail to reject H₀", "Reject H₀", "Mean = 4.5", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "High variability affects test results by:",
+      "opts": ["Making p-value larger", "Making p-value smaller", "Always rejecting H₀", "Eliminating error"],
+      "ans": 0
+    },
+    {
+      "q": "Confidence intervals overlap strongly. Interpretation:",
+      "opts": ["Weak evidence of difference", "Strong difference", "Guaranteed increase", "Outlier effect"],
+      "ans": 0
+    },
+    {
+      "q": "A firm reduces α from 0.05 to 0.01. Impact?",
+      "opts": ["Harder to reject H₀", "Easier to reject H₀", "Increase Type I error", "Always accept H₀"],
+      "ans": 0
+    },
+    {
+      "q": "If p-value < 0.05 but effect size tiny:",
+      "opts": ["Statistically significant but not practically important", "Practically important", "No significance", "Strong practical effect"],
+      "ans": 0
+    },
+    {
+      "q": "Retailer tests if mean spending changed; CI does not overlap zero:",
+      "opts": ["Significant evidence of change", "No evidence", "Mean stable", "Incorrect model"],
+      "ans": 0
+    },
+    {
+      "q": "Hospital tests if wait times increased; p = 0.12:",
+      "opts": ["Insufficient evidence", "Strong increase", "Guaranteed increase", "High SD only"],
+      "ans": 0
+    },
+    {
+      "q": "Traffic department tests if accidents decreased; p = 0.04 at α=0.05:",
+      "opts": ["Significant decrease", "No decrease", "Variance zero", "Mean unrelated"],
+      "ans": 0
+    },
+    {
+      "q": "Outliers affect hypothesis testing by:",
+      "opts": ["Inflating p-values", "Decreasing SE", "Eliminating bias", "Making α meaningless"],
+      "ans": 0
+    },
+    {
+      "q": "Hotel compares ratings between branches; CI excludes 0:",
+      "opts": ["Significant difference", "No difference", "Mean same", "SD zero"],
+      "ans": 0
+    },
+    {
+      "q": "Company sets α=0.10 instead of 0.05:",
+      "opts": ["More likely to reject H₀", "Less likely to reject H₀", "Variance high", "Zero Type I error"],
+      "ans": 0
+    },
+    {
+      "q": "Firm wants fewer missed true effects. Solution:",
+      "opts": ["Increase sample size", "Lower α", "Increase SD", "Use biased sample"],
+      "ans": 0
+    },
+    {
+      "q": "If p-value very small:",
+      "opts": ["Data incompatible with H₀", "H₀ proven true", "Bias guaranteed", "Mean zero"],
+      "ans": 0
+    },
+    {
+      "q": "Retailer tests slope of regression; CI for slope excludes 0:",
+      "opts": ["Predictor significant", "Predictor irrelevant", "Slope zero", "SE infinite"],
+      "ans": 0
+    },
+    {
+      "q": "A gym tests new training method; CI for difference: (−2, 1). Interpretation?",
+      "opts": ["No significant improvement", "Strong improvement", "Decrease guaranteed", "Variance zero"],
+      "ans": 0
+    },
+    {
+      "q": "A bank tests fraud rate; CI shifts upward:",
+      "opts": ["Fraud increasing", "Fraud decreasing", "Fraud unchanged", "Mean zero"],
+      "ans": 0
+    }
+  ]
+}

@@ -1,0 +1,310 @@
+{
+  "Low": [
+    {
+      "q": "What does the mean represent?",
+      "opts": ["Average value", "Middle value", "Most frequent value", "Spread of data"],
+      "ans": 0
+    },
+    {
+      "q": "Which measure identifies the middle value of ordered data?",
+      "opts": ["Median", "Mean", "Mode", "Range"],
+      "ans": 0
+    },
+    {
+      "q": "Which measure describes the most frequently occurring value?",
+      "opts": ["Mode", "Mean", "Median", "Variance"],
+      "ans": 0
+    },
+    {
+      "q": "Which statistic measures the spread of data values?",
+      "opts": ["Range", "Mean", "Mode", "Median"],
+      "ans": 0
+    },
+    {
+      "q": "What does a small standard deviation indicate?",
+      "opts": ["Data values are close to the mean", "Data values widely spread", "Data categorical", "Mean incorrect"],
+      "ans": 0
+    },
+    {
+      "q": "Which measure is sensitive to extreme values?",
+      "opts": ["Mean", "Median", "Mode", "Frequency"],
+      "ans": 0
+    },
+    {
+      "q": "Which measure is resistant to outliers?",
+      "opts": ["Median", "Mean", "Standard deviation", "Variance"],
+      "ans": 0
+    },
+    {
+      "q": "Which measure uses squared deviations from the mean?",
+      "opts": ["Variance", "Mode", "Median", "Range"],
+      "ans": 0
+    },
+    {
+      "q": "Which is NOT a measure of central tendency?",
+      "opts": ["Range", "Mean", "Median", "Mode"],
+      "ans": 0
+    },
+    {
+      "q": "Which value divides data into four equal parts?",
+      "opts": ["Quartiles", "Mean", "Mode", "Variance"],
+      "ans": 0
+    },
+    {
+      "q": "If data is symmetric, which two measures are equal?",
+      "opts": ["Mean and Median", "Median and Range", "Mean and Mode", "Mode and Variance"],
+      "ans": 0
+    },
+    {
+      "q": "A dataset has many identical repeated values. Which measure is useful?",
+      "opts": ["Mode", "Range", "Variance", "Standard deviation"],
+      "ans": 0
+    },
+    {
+      "q": "Which plot shows frequency in intervals?",
+      "opts": ["Histogram", "Boxplot", "Scatterplot", "Bar chart"],
+      "ans": 0
+    },
+    {
+      "q": "Which visualization displays the median and quartiles?",
+      "opts": ["Boxplot", "Histogram", "Scatterplot", "Pie chart"],
+      "ans": 0
+    },
+    {
+      "q": "Which measure describes how far values deviate from mean?",
+      "opts": ["Standard deviation", "Range", "Mode", "Frequency"],
+      "ans": 0
+    },
+    {
+      "q": "Which measure equals maximum minus minimum?",
+      "opts": ["Range", "Median", "Mode", "IQR"],
+      "ans": 0
+    },
+    {
+      "q": "Which statistic is used for categorical data?",
+      "opts": ["Mode", "Median", "Variance", "Standard deviation"],
+      "ans": 0
+    },
+    {
+      "q": "A bimodal distribution has:",
+      "opts": ["Two peaks", "One peak", "No peaks", "Flat line"],
+      "ans": 0
+    },
+    {
+      "q": "Which best summarizes right-skewed distribution?",
+      "opts": ["Mean > Median", "Mean = Median", "Mean < Median", "Median < Mode"],
+      "ans": 0
+    },
+    {
+      "q": "Which measure works best with extreme outliers?",
+      "opts": ["Median", "Mean", "Range", "Variance"],
+      "ans": 0
+    }
+  ],
+
+  "Medium": [
+    {
+      "q": "Why is the median better for skewed data?",
+      "opts": ["Resistant to outliers", "Uses all values", "Equals mode", "Gives larger values"],
+      "ans": 0
+    },
+    {
+      "q": "Which measure is most affected by extreme values?",
+      "opts": ["Mean", "Median", "Mode", "Percentile"],
+      "ans": 0
+    },
+    {
+      "q": "Why use standard deviation instead of variance?",
+      "opts": ["SD in original units", "SD always smaller", "SD equals mean", "SD ignores deviations"],
+      "ans": 0
+    },
+    {
+      "q": "Which dataset is more variable?",
+      "opts": ["Dataset B (SD = 10)", "Dataset A", "Same variability", "Cannot determine"],
+      "ans": 0
+    },
+    {
+      "q": "What does IQR measure?",
+      "opts": ["Middle 50% spread", "Entire spread", "Most common value", "Minimum value"],
+      "ans": 0
+    },
+    {
+      "q": "Which spread measure best fits symmetric data?",
+      "opts": ["Standard deviation", "IQR", "Mode", "Frequency"],
+      "ans": 0
+    },
+    {
+      "q": "Right-skewed data likely has:",
+      "opts": ["Mean > Median", "Mean < Median", "Mean = Median", "No relationship"],
+      "ans": 0
+    },
+    {
+      "q": "Boxplot with long upper whisker indicates:",
+      "opts": ["Positive skew", "Negative skew", "Symmetric", "No skew"],
+      "ans": 0
+    },
+    {
+      "q": "Which visual best shows skewness?",
+      "opts": ["Histogram", "Scatterplot", "Bar chart", "Pie chart"],
+      "ans": 0
+    },
+    {
+      "q": "Mode is most useful for which type of data?",
+      "opts": ["Categorical", "Continuous", "Ratio", "Interval"],
+      "ans": 0
+    },
+    {
+      "q": "If IQR increases while SD stays the same, what happened?",
+      "opts": ["Middle values more spread out", "Data more centered", "SD decreases", "Mean wrong"],
+      "ans": 0
+    },
+    {
+      "q": "Which statistic compares spread across different units?",
+      "opts": ["Coefficient of variation", "SD", "Mode", "Mean"],
+      "ans": 0
+    },
+    {
+      "q": "A high coefficient of variation indicates:",
+      "opts": ["High variability relative to mean", "Low variability", "High central tendency", "None"],
+      "ans": 0
+    },
+    {
+      "q": "A negative z-score indicates:",
+      "opts": ["Value below mean", "Above mean", "Equal to mean", "Unknown"],
+      "ans": 0
+    },
+    {
+      "q": "Two datasets with equal means but different SD implies:",
+      "opts": ["One has larger spread", "Means wrong", "One skewed", "No difference"],
+      "ans": 0
+    },
+    {
+      "q": "If Q3 – Q1 = 0 implies:",
+      "opts": ["All data values identical", "Strong skew exists", "Wide spread", "Outliers increasing"],
+      "ans": 0
+    },
+    {
+      "q": "When is median preferred over mean?",
+      "opts": ["Skewed data", "Normal data", "All data", "Categorical only"],
+      "ans": 0
+    },
+    {
+      "q": "Which best describes an outlier?",
+      "opts": ["Value far from others", "Normal variation", "Mean value", "Middle value"],
+      "ans": 0
+    },
+    {
+      "q": "Two groups have same SD but different means. This means:",
+      "opts": ["Central tendency differs", "Variability differs", "Skewness differs", "Nothing"],
+      "ans": 0
+    },
+    {
+      "q": "If SD = 0, what does it mean?",
+      "opts": ["All values identical", "High variability", "Negative values", "Data skewed"],
+      "ans": 0
+    }
+  ],
+
+  "High": [
+    {
+      "q": "SD increased from 5 to 15 for monthly sales implies:",
+      "opts": ["Sales became more volatile", "Average increased", "Data symmetric", "Outliers removed"],
+      "ans": 0
+    },
+    {
+      "q": "For a heavily right-skewed defect distribution, best center measure?",
+      "opts": ["Median", "Mean", "Mode", "CV"],
+      "ans": 0
+    },
+    {
+      "q": "In a right-tailed wait-time distribution, best spread measure?",
+      "opts": ["IQR", "SD", "Range", "Mode"],
+      "ans": 0
+    },
+    {
+      "q": "Exam histogram with two clear peaks indicates:",
+      "opts": ["Two subgroups exist", "No variation", "Normal distribution", "One group"],
+      "ans": 0
+    },
+    {
+      "q": "Product A: mean 20, SD 2; Product B: mean 50, SD 5. Which more consistent?",
+      "opts": ["Product B", "Product A", "Same", "Cannot tell"],
+      "ans": 0
+    },
+    {
+      "q": "If mean = 30 and median = 12, the distribution is:",
+      "opts": ["Strongly right-skewed", "Strongly left-skewed", "Perfectly symmetric", "Cannot determine"],
+      "ans": 0
+    },
+    {
+      "q": "Right-skewed salaries: misleading measure?",
+      "opts": ["Mean", "Median", "IQR", "Mode"],
+      "ans": 0
+    },
+    {
+      "q": "Ratings mean = 4.9, SD = 0.1. Interpretation?",
+      "opts": ["Highly consistent ratings", "Skewed data", "Poor satisfaction", "High variability"],
+      "ans": 0
+    },
+    {
+      "q": "Extreme website load times: best spread measure?",
+      "opts": ["IQR", "SD", "Variance", "CV"],
+      "ans": 0
+    },
+    {
+      "q": "Branch A mean 80 SD 30; Branch B mean 50 SD 5. Which is more stable?",
+      "opts": ["Branch B", "Branch A", "Same", "N/A"],
+      "ans": 0
+    },
+    {
+      "q": "Decreasing variance month-to-month implies:",
+      "opts": ["Process more stable", "Mean decreasing", "Outliers increasing", "Data incorrect"],
+      "ans": 0
+    },
+    {
+      "q": "Large IQR implies:",
+      "opts": ["High variability in middle 50%", "Values tightly packed", "No outliers", "Mean must be high"],
+      "ans": 0
+    },
+    {
+      "q": "Mean 42, median 42, mode 41 indicates:",
+      "opts": ["Nearly symmetric distribution", "Right-skewed", "Left-skewed", "U-shaped distribution"],
+      "ans": 0
+    },
+    {
+      "q": "SD doubled while mean same implies:",
+      "opts": ["Increased variability", "Mean shifted", "No change", "Outliers removed"],
+      "ans": 0
+    },
+    {
+      "q": "Mean 25, SD 0.2 implies:",
+      "opts": ["Very stable values", "Highly variable", "Left-skewed", "N/A"],
+      "ans": 0
+    },
+    {
+      "q": "Right-skew customer spending: best center measure?",
+      "opts": ["Median", "Mean", "Mode", "SD"],
+      "ans": 0
+    },
+    {
+      "q": "CV = 0.90 for delivery times means:",
+      "opts": ["Very inconsistent performance", "Consistent operations", "Mean near zero", "Perfect process"],
+      "ans": 0
+    },
+    {
+      "q": "Group A higher mean; Group B lower SD. Interpretation?",
+      "opts": ["A higher average, B more consistent", "B higher average", "A more consistent", "No difference"],
+      "ans": 0
+    },
+    {
+      "q": "Low variance but presence of extreme outliers. Best spread measure?",
+      "opts": ["IQR", "SD", "Mean", "Histogram"],
+      "ans": 0
+    },
+    {
+      "q": "IQR decreasing while SD increasing implies:",
+      "opts": ["Stable middle but more extreme values", "All values identical", "Mean decreasing", "No interpretation"],
+      "ans": 0
+    }
+  ]
+}
