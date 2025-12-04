@@ -293,6 +293,16 @@
         let raw = data.questions || [];
         questions = Array.isArray(raw) ? raw : Object.values(raw);
 
+        // Firestore → index.html 구조로 변환
+questions = array.map(q => ({
+  text: q.text || q.question || "",        // 지원
+  options: q.options || [q.opt1, q.opt2, q.opt3, q.opt4],
+  answer: q.answer,
+  topic: q.topic || "",
+  level: q.level || "",
+  id: q.id || ""
+}));
+
         if (!questions.length) {
           alert("No questions are available in the exam set.");
           return false;
