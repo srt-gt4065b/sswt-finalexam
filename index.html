@@ -260,7 +260,15 @@ async function startExam() {
     startTimer();
 }
 
+ // 🔥 여기서 문제 불러오기
+    await loadQuestions(EXAM_DOC_ID);
 
+    if (!questions || questions.length === 0) {
+        alert("No questions loaded.");
+        return;
+    }
+
+    
 /* ============================================================
    RENDER QUESTION (4-Choice MCQ)
    ============================================================ */
