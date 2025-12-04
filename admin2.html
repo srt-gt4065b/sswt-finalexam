@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin – MCQ Question Manager V12</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen p-6">
+
+<!-- ========================================================= -->
+<!-- PASSWORD GATE -->
+<!-- ========================================================= -->
+<div id="passwordGate"
+     class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50">
+  <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center">
+    <h2 class="text-2xl font-bold text-purple-600 mb-4">Admin Access</h2>
+    <p class="text-gray-600 mb-6">Enter the admin password to continue.</p>
+
+    <input id="adminPass"
+           type="password"
+           class="w-full px-4 py-3 border rounded-lg text-center text-lg focus:ring-2 focus:ring-purple-500"
+           placeholder="Enter password">
+
+    <button onclick="checkAdminPassword()"
+            class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg mt-4">
+      Unlock
+    </button>
+
+    <p id="passError" class="text-red-500 font-semibold mt-3 hidden">
+      ❌ Incorrect password
+    </p>
+  </div>
+</div>
+
+<script>
+  function checkAdminPassword() {
+    const input = document.getElementById("adminPass").value.trim();
+    if (input === "1230") {
+      document.getElementById("passwordGate").classList.add("hidden");
+    } else {
+      document.getElementById("passError").classList.remove("hidden");
+    }
+  }
+</script>
+
+<!-- ========================================================= -->
+<!-- MAIN WRAPPER -->
+<!-- ========================================================= -->
+<div class="max-w-7xl mx-auto bg-white p-6 md:p-10 rounded-2xl shadow-xl">
+
+  <h1 class="text-3xl md:text-4xl font-bold text-center text-purple-600 mb-6">
+    Admin – MCQ Question Manager V12
+  </h1>
+
+  <!-- Meta / Version -->
+  <div class="grid md:grid-cols-4 gap-4 mb-6">
+    <div class="md:col-span-1">
+      <label class="block text-sm font-semibold text-gray-700 mb-1">
+        Target exam version (docId)
+      </label>
+      <input id="docIdInput"
+             class="border rounded-lg px-3 py-2 w-full"
+             value="current"
+             placeholder="e.g., current, final2025">
+      <p class="text-xs text-gray-500 mt-1">
+        Saved to Firestore → <span class="font-mono">exam_questions / [docId]</span>
+      </p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1">
+        Exam title
+      </label>
+      <input id="examTitleInput"
+             class="border rounded-lg px-3 py-2 w-full"
+             value="Statistics with SW Tools - 2025 Fall Final Exam">
+    </div>
+
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1">
+        Duration (minutes)
+      </label>
+      <input id="durationInput"
+             type="number"
+             min="1"
+             class="border rounded-lg px-3 py-2 w-full"
+             value="35">
+    </div>
+
+    <div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1">
+        Version label
+      </label>
+      <input id="examVersionInput"
+             class="border rounded-lg px-3 py-2 w-full"
+             value="Final2025">
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="border-b mb-4 flex flex-wrap gap-2">
+    <button class="tab-btn px-4 py-2 text-sm font-semibold border-b-2 border-purple-600 text-purple-700"
+            data-tab="uploadTab">Upload (CSV / JSON)</button>
+    <button class="tab-btn px-4 py-2 text-sm font-semibold text-gray-500"
+            data-tab="templateTab">Template Loader</button>
+    <button class="tab-btn px-4 py-2 text-sm font-semibold text-gray-500"
+            data-tab="previewTab">Preview & Edit</button>
+    <button class="tab-btn px-4 py-2 text-sm font-semibold text-gray-500"
+            data-tab="firestoreTab">Firestore Upload</button>
+    <button class="tab-btn px-4 py-2 text-sm font-semibold text-gray-500"
+            data-tab="finalTab">Final 100 Generator</button>
+    <button class="tab-btn px-4 py-2 text-sm font-semibold text-gray-500"
+            data-tab="loadTab">Load from Firestore</button>
+    <button class="tab-btn px-4 py-2 text-sm font-semibold text-gray-500"
+            data-tab="deleteTab">Delete FB Data</button>
+    <button class="tab-btn px-4 py-2 text-sm font-semibold text-gray-500"
+            data-tab="explorerTab">Firestore Explorer</button>
+    <button class="tab-btn px-4 py-2 text-sm font-semibold text-gray-500"
+            data-tab="resultsTab">Student Results</button>
+  </div>
+
+  <!-- ===================== -->
+  <!-- TAB: UPLOAD (CSV/JSON) -->
+  <!-- ===================== -->
+  <div id="uploadTab" class="tab-pane block">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- CSV Upload -->
+      <div class="border rounded-xl p-6 bg-gray-50">
+        <h2 class="text-xl font-bold mb-3 text-purple-700">Upload Questions via CSV</h2>
+        <p class="text-sm text-gray-600 mb-2">
+          Format:
+          <span class="font-mono">id,topic,level,question,opt1,opt2,opt3,opt4,answer</span>
+        </p>
+        <input id="csvFile" type="file" accept=".csv"
+               class="w-full border p-3 rounded bg-white shadow-sm">
+        <button onclick="previewCSV()"
+                class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold">
+          Preview CSV
+        </button>
+      </div>
+
+      <!-- JSON Upload -->
+      <div class="border rounded-xl p-6 bg-gray-50">
+        <h2 class="text-xl font-bold mb-3 text-purple-700">Upload Questions via JSON</h2>
+        <p class="text-sm text-gray-600 mb-2">
+          Supported formats:
+        </p>
+        <ul class="text-xs text-gray-600 list-disc ml-5 mb-2">
+          <li><span class="font-mono">[{"id","topic","level","question","opt1","opt2","opt3","opt4","answer"}, ...]</span></li>
+          <li><span class="font-mono">[{"id","text","options","answer"}, ...]</span></li>
+          <li><span class="font-mono">{"Low":[...], "Medium":[...], "High":[...]}</span></li>
+        </ul>
+        <input id="jsonFile" type="file" accept=".json"
+               class="w-full border p-3 rounded bg-white shadow-sm">
+        <button onclick="previewJSON()"
+                class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold">
+          Preview JSON
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- TAB: TEMPLATE LOADER -->
+  <!-- ===================== -->
+  <div id="templateTab" class="tab-pane hidden mt-4">
+    <div class="border rounded-xl p-6 bg-gray-50">
+      <h2 class="text-xl font-bold mb-4 text-purple-700">Load Topic Templates (JSON)</h2>
+      <p class="text-sm text-gray-600 mb-3">
+        /templates 폴더에 있는 주제별 JSON 파일을 불러와서 Preview에 추가합니다.
+      </p>
+
+      <div class="grid md:grid-cols-3 gap-3">
+        <button onclick="loadTemplateJSON('descriptive.json','Descriptive Statistics')"
+                class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">
+          descriptive.json
+        </button>
+        <button onclick="loadTemplateJSON('probability.json','Probability')"
+                class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">
+          probability.json
+        </button>
+        <button onclick="loadTemplateJSON('sampling.json','Sampling & Sampling Distribution')"
+                class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">
+          sampling.json
+        </button>
+        <button onclick="loadTemplateJSON('estimation.json','Estimation (Confidence Interval)')"
+                class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">
+          estimation.json
+        </button>
+        <button onclick="loadTemplateJSON('hypothesis.json','Hypothesis Testing')"
+                class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">
+          hypothesis.json
+        </button>
+        <button onclick="loadTemplateJSON('regression.json','Regression Basics')"
+                class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">
+          regression.json
+        </button>
+        <button onclick="loadTemplateJSON('practical.json','Practical Real-World Applications')"
+                class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm md:col-span-3">
+          practical.json
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- TAB: PREVIEW & EDIT -->
+  <!-- ===================== -->
+  <div id="previewTab" class="tab-pane hidden mt-4">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-xl font-bold text-gray-800">Preview & Inline Edit</h2>
+      <div class="flex gap-2">
+        <button onclick="addEmptyQuestion()"
+                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-semibold">
+          + Add Empty Question
+        </button>
+        <button onclick="clearPreview()"
+                class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-semibold">
+          Clear All
+        </button>
+      </div>
+    </div>
+
+    <div id="previewArea" class="border rounded-xl p-2 bg-gray-50 max-h-[600px] overflow-auto">
+      <p class="text-sm text-gray-500">No questions loaded yet.</p>
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- TAB: FIRESTORE UPLOAD -->
+  <!-- ===================== -->
+  <div id="firestoreTab" class="tab-pane hidden mt-4">
+    <div class="border rounded-xl p-6 bg-gray-50">
+      <h2 class="text-xl font-bold text-purple-700 mb-4">Upload to Firestore</h2>
+      <p class="text-sm text-gray-700 mb-4">
+        Preview에 있는 문항들을 <span class="font-mono">exam_questions / [docId]</span> 에 업로드합니다.
+      </p>
+
+      <div class="flex flex-col md:flex-row gap-3 mb-4">
+        <button onclick="uploadSelectedQuestions()"
+                class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-bold">
+          Upload Checked Questions Only
+        </button>
+        <button onclick="uploadAllQuestions()"
+                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold">
+          Upload ALL Questions in Preview
+        </button>
+      </div>
+
+      <p class="text-xs text-gray-500">
+        저장 구조: { title, duration, version, count, questions[], updatedAt } 로 저장됩니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- TAB: FINAL 100 GENERATOR -->
+  <!-- ===================== -->
+  <div id="finalTab" class="tab-pane hidden mt-4">
+    <div class="border rounded-xl p-6 bg-gray-50">
+      <h2 class="text-xl font-bold text-purple-700 mb-2">Final 100 Generator (Balanced Exam Builder)</h2>
+      <p class="text-sm text-gray-700 mb-2">
+        주제별 템플릿 JSON에서 균형 잡힌 100문제를 생성합니다.
+      </p>
+      <p class="text-sm text-gray-600 mb-4">
+        기본 분포: Descriptive 15, Probability 15, Sampling 15, Estimation 15, Hypothesis 15, Regression 15, Practical 10
+      </p>
+
+      <button onclick="generateBalancedFinal()"
+              class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-bold mb-3">
+        Generate Balanced 100 Questions → Preview
+      </button>
+
+      <p class="text-xs text-gray-500">
+        생성 후 Preview 탭에서 내용을 확인·수정한 뒤, Firestore Upload 탭에서 저장하세요.
+      </p>
+
+      <p id="finalStatus" class="text-sm text-center mt-3 text-gray-700"></p>
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- TAB: LOAD FROM FIRESTORE -->
+  <!-- ===================== -->
+  <div id="loadTab" class="tab-pane hidden mt-4">
+    <div class="border rounded-xl p-6 bg-gray-50">
+      <h2 class="text-xl font-bold text-purple-700 mb-3">Load Questions from Firestore</h2>
+      <p class="text-sm text-gray-700 mb-3">
+        지정한 docId의 시험을 불러와 Preview에 표시합니다.
+      </p>
+      <button onclick="loadFromFirestore()"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold">
+        Load exam_questions / [docId] → Preview
+      </button>
+      <p class="text-xs text-gray-500 mt-3">
+        title / duration / version 필드가 있으면 상단 입력값도 자동으로 갱신됩니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- TAB: DELETE FB DATA -->
+  <!-- ===================== -->
+  <div id="deleteTab" class="tab-pane hidden mt-4">
+    <div class="border rounded-xl p-6 bg-red-50">
+      <h2 class="text-xl font-bold text-red-600 mb-3">Delete Firestore Exam Document</h2>
+      <p class="text-sm text-gray-700 mb-3">
+        주의: <span class="font-mono">exam_questions / [docId]</span> 문서를 완전히 삭제합니다.
+      </p>
+      <button onclick="deleteExamDoc()"
+              class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-bold">
+        Delete exam_questions / [docId]
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- TAB: FIRESTORE EXPLORER -->
+  <!-- ===================== -->
+  <div id="explorerTab" class="tab-pane hidden mt-4">
+    <div class="border rounded-xl p-6 bg-gray-50">
+      <h2 class="text-xl font-bold text-purple-700 mb-3">Firestore Explorer (exam_questions)</h2>
+      <button onclick="listExamDocs()"
+              class="mb-3 bg-gray-800 hover:bg-gray-900 text-white py-2 px-4 rounded-lg text-sm font-bold">
+        List exam_questions docs
+      </button>
+      <ul id="examDocsList" class="text-sm text-gray-700 space-y-1 max-h-64 overflow-auto border rounded p-2"></ul>
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- TAB: STUDENT RESULTS -->
+  <!-- ===================== -->
+  <div id="resultsTab" class="tab-pane hidden mt-4">
+    <div class="border rounded-xl p-6 bg-gray-50">
+      <h2 class="text-xl font-bold text-purple-700 mb-3">Student Results (exam_responses)</h2>
+      <button onclick="listStudentResults()"
+              class="mb-3 bg-gray-800 hover:bg-gray-900 text-white py-2 px-4 rounded-lg text-sm font-bold">
+        Load student responses
+      </button>
+      <div id="resultsArea" class="max-h-80 overflow-auto border rounded p-2 text-sm text-gray-800"></div>
+    </div>
+  </div>
+
+  <p id="statusMsg" class="text-center mt-6 text-lg font-semibold"></p>
+
+</div>
+
+<!-- ========================================================= -->
+<!-- FIREBASE INIT -->
+<!-- ========================================================= -->
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
+    authDomain: "sswt-final.firebaseapp.com",
+    projectId: "sswt-final",
+    storageBucket: "sswt-final.firebasestorage.app",
+    messagingSenderId: "824707188580",
+    appId: "1:824707188580:web:747ba4d91ab781e1a15c71"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
+<!-- ========================================================= -->
+<!-- GLOBAL STATE -->
+<!-- ========================================================= -->
+<script>
+  // previewData: [{id, topic, level, question, opt1..4, answer, use}]
+  let previewData = [];
+</script>
+
+<!-- ========================================================= -->
+<!-- TABS LOGIC -->
+<!-- ========================================================= -->
+<script>
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  const tabPanes = document.querySelectorAll(".tab-pane");
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.tab;
+
+      tabButtons.forEach(b => {
+        b.classList.remove("border-purple-600","text-purple-700");
+        b.classList.add("text-gray-500");
+      });
+      btn.classList.add("border-purple-600","text-purple-700");
+      btn.classList.remove("text-gray-500");
+
+      tabPanes.forEach(pane => pane.classList.add("hidden"));
+      document.getElementById(target).classList.remove("hidden");
+    });
+  });
+
+  function setStatus(msg, cls="text-green-600") {
+    const el = document.getElementById("statusMsg");
+    el.textContent = msg;
+    el.className = cls + " text-center text-lg font-semibold";
+  }
+</script>
+
+<!-- ========================================================= -->
+<!-- CSV PARSE + PREVIEW -->
+<!-- ========================================================= -->
+<script>
+  function parseCSV(text) {
+    const lines = text.trim().split("\n");
+    const headers = lines[0].split(",").map(h => h.trim());
+
+    return lines.slice(1).map(line => {
+      const cols = line.split(",").map(c => c.trim());
+      let obj = {};
+      headers.forEach((h, i) => obj[h] = cols[i]);
+      return obj;
+    });
+  }
+
+  function previewCSV() {
+    const file = document.getElementById("csvFile").files[0];
+    if (!file) {
+      alert("Select a CSV file first.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const rows = parseCSV(e.target.result);
+      rows.forEach(r => {
+        previewData.push({
+          id: r.id || "",
+          topic: r.topic || "",
+          level: r.level || "",
+          question: r.question || "",
+          opt1: r.opt1 || "",
+          opt2: r.opt2 || "",
+          opt3: r.opt3 || "",
+          opt4: r.opt4 || "",
+          answer: r.answer ? parseInt(r.answer,10) : 0,
+          use: true
+        });
+      });
+      renderPreviewTable();
+      setStatus(`✅ Added ${rows.length} questions from CSV.`);
+    };
+    reader.readAsText(file);
+  }
+</script>
+
+<!-- ========================================================= -->
+<!-- JSON PREVIEW -->
+<!-- ========================================================= -->
+<script>
+  function previewJSON() {
+    const file = document.getElementById("jsonFile").files[0];
+    if (!file) {
+      alert("Select a JSON file first.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+
+        // Format 1: Array of question objects
+        if (Array.isArray(data)) {
+          data.forEach((q, idx) => {
+            previewData.push(normalizeQuestion(q, `J${previewData.length + idx + 1}`));
+          });
+        }
+        // Format 2: { Low:[], Medium:[], High:[] }
+        else if (data.Low || data.Medium || data.High) {
+          ["Low","Medium","High"].forEach(level => {
+            if (Array.isArray(data[level])) {
+              data[level].forEach((q, idx) => {
+                const nq = normalizeQuestion(q, `J${previewData.length + idx + 1}`);
+                nq.level = level;
+                previewData.push(nq);
+              });
+            }
+          });
+        } else {
+          alert("Unsupported JSON structure.");
+          return;
+        }
+
+        renderPreviewTable();
+        setStatus("✅ JSON questions loaded into preview.");
+      } catch (err) {
+        console.error(err);
+        alert("Invalid JSON file.");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function normalizeQuestion(q, fallbackId) {
+    const opts = q.options || q.opts || [];
+    return {
+      id: q.id || fallbackId,
+      topic: q.topic || "",
+      level: q.level || "",
+      question: q.question || q.text || q.q || "",
+      opt1: q.opt1 || opts[0] || "",
+      opt2: q.opt2 || opts[1] || "",
+      opt3: q.opt3 || opts[2] || "",
+      opt4: q.opt4 || opts[3] || "",
+      answer: (typeof q.answer === "number"
+                ? q.answer
+                : (typeof q.ans === "number" ? q.ans : parseInt(q.answer || q.ans || 0, 10))),
+      use: true
+    };
+  }
+</script>
+
+<!-- ========================================================= -->
+<!-- TEMPLATE JSON LOADER -->
+<!-- ========================================================= -->
+<script>
+  async function loadTemplateJSON(filename, topicLabel) {
+    try {
+      const res = await fetch(`templates/${filename}`);
+      if (!res.ok) {
+        alert(`Cannot load ${filename}. Check path.`);
+        return;
+      }
+      const data = await res.json();
+      let added = 0;
+
+      ["Low","Medium","High"].forEach(level => {
+        if (Array.isArray(data[level])) {
+          data[level].forEach(q => {
+            const nq = normalizeQuestion(q, `T${previewData.length + 1}`);
+            nq.topic = topicLabel || (q.topic || "");
+            nq.level = level;
+            previewData.push(nq);
+            added++;
+          });
+        }
+      });
+
+      renderPreviewTable();
+      setStatus(`✅ Loaded ${added} questions from ${filename}.`);
+      document.querySelector('[data-tab="previewTab"]').click();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load template JSON.");
+    }
+  }
+</script>
+
+<!-- ========================================================= -->
+<!-- PREVIEW TABLE + INLINE EDIT -->
+<!-- ========================================================= -->
+<script>
+  function renderPreviewTable() {
+    const container = document.getElementById("previewArea");
+    if (!previewData.length) {
+      container.innerHTML = `<p class="text-sm text-gray-500">No questions loaded yet.</p>`;
+      return;
+    }
+
+    let html = `
+      <table class="min-w-full border text-xs md:text-sm">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="border px-2 py-1">Use</th>
+            <th class="border px-2 py-1">#</th>
+            <th class="border px-2 py-1">ID</th>
+            <th class="border px-2 py-1">Topic</th>
+            <th class="border px-2 py-1">Level</th>
+            <th class="border px-2 py-1 w-[30%]">Question</th>
+            <th class="border px-2 py-1">Opt1</th>
+            <th class="border px-2 py-1">Opt2</th>
+            <th class="border px-2 py-1">Opt3</th>
+            <th class="border px-2 py-1">Opt4</th>
+            <th class="border px-2 py-1">Ans(0-3)</th>
+            <th class="border px-2 py-1">Del</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    previewData.forEach((q, idx) => {
+      html += `
+        <tr class="bg-white">
+          <td class="border px-1 py-1 text-center">
+            <input type="checkbox" class="select-q" data-index="${idx}" ${q.use !== false ? "checked" : ""}>
+          </td>
+          <td class="border px-1 py-1 text-center">${idx + 1}</td>
+          <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="id">${q.id || ""}</td>
+          <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="topic">${q.topic || ""}</td>
+          <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="level">${q.level || ""}</td>
+          <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="question">${q.question || ""}</td>
+          <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="opt1">${q.opt1 || ""}</td>
+          <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="opt2">${q.opt2 || ""}</td>
+          <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="opt3">${q.opt3 || ""}</td>
+          <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="opt4">${q.opt4 || ""}</td>
+          <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="answer">${q.answer ?? 0}</td>
+          <td class="border px-1 py-1 text-center">
+            <button class="text-red-600 font-bold text-xs" onclick="deleteQuestion(${idx})">X</button>
+          </td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+  }
+
+  // Inline edit
+  document.getElementById("previewArea").addEventListener("blur", function(e) {
+    const target = e.target;
+    const idx = target.getAttribute("data-index");
+    const field = target.getAttribute("data-field");
+    if (idx === null || field === null) return;
+
+    const value = target.textContent.trim();
+    if (!previewData[idx]) return;
+
+    if (field === "answer") {
+      let num = parseInt(value, 10);
+      if (isNaN(num) || num < 0 || num > 3) num = 0;
+      previewData[idx][field] = num;
+      target.textContent = num;
+    } else {
+      previewData[idx][field] = value;
+    }
+  }, true);
+
+  function deleteQuestion(index) {
+    if (!confirm("Delete this question?")) return;
+    previewData.splice(index, 1);
+    renderPreviewTable();
+  }
+
+  function addEmptyQuestion() {
+    previewData.push({
+      id: `Q${previewData.length + 1}`,
+      topic: "",
+      level: "",
+      question: "",
+      opt1: "",
+      opt2: "",
+      opt3: "",
+      opt4: "",
+      answer: 0,
+      use: true
+    });
+    renderPreviewTable();
+  }
+
+  function clearPreview() {
+    if (!confirm("Clear ALL questions in preview?")) return;
+    previewData = [];
+    renderPreviewTable();
+  }
+</script>
+
+<!-- ========================================================= -->
+<!-- FIRESTORE UPLOAD (선택 / 전체) -->
+<!-- ========================================================= -->
+<script>
+  async function uploadSelectedQuestions() {
+    if (!previewData.length) {
+      alert("No questions loaded.");
+      return;
+    }
+    const selected = [];
+    document.querySelectorAll(".select-q").forEach(cb => {
+      const idx = parseInt(cb.dataset.index, 10);
+      if (cb.checked && previewData[idx]) {
+        selected.push(previewData[idx]);
+      }
+    });
+    if (!selected.length) {
+      alert("No questions selected.");
+      return;
+    }
+    await saveQuestionsToFirestore(selected);
+  }
+
+  async function uploadAllQuestions() {
+    if (!previewData.length) {
+      alert("No questions loaded.");
+      return;
+    }
+    await saveQuestionsToFirestore(previewData);
+  }
+
+  async function saveQuestionsToFirestore(list) {
+    const docId = document.getElementById("docIdInput").value.trim() || "current";
+    const title = document.getElementById("examTitleInput").value.trim();
+    const duration = parseInt(document.getElementById("durationInput").value, 10) || 35;
+    const version = document.getElementById("examVersionInput").value.trim();
+
+    const questions = list.map((q, idx) => ({
+      id: q.id || `Q${idx + 1}`,
+      topic: q.topic || "",
+      level: q.level || "",
+      question: q.question || "",
+      opt1: q.opt1 || "",
+      opt2: q.opt2 || "",
+      opt3: q.opt3 || "",
+      opt4: q.opt4 || "",
+      answer: Number.isInteger(q.answer) ? q.answer : parseInt(q.answer || 0, 10)
+    }));
+
+    const payload = {
+      title: title,
+      duration: duration,
+      version: version,
+      count: questions.length,
+      questions: questions,
+      updatedAt: new Date().toISOString()
+    };
+
+    try {
+      await db.collection("exam_questions").doc(docId).set(payload);
+      setStatus(`✅ Uploaded ${questions.length} questions to exam_questions/${docId}.`);
+    } catch (err) {
+      console.error(err);
+      alert("Upload failed.");
+    }
+  }
+</script>
+
+<!-- ========================================================= -->
+<!-- FINAL 100 GENERATOR (Balanced) -->
+<!-- ========================================================= -->
+<script>
+  async function generateBalancedFinal() {
+    // 토픽별 파일 이름과 개수
+    const plan = [
+      { file: "descriptive.json", topic: "Descriptive Statistics", count: 15 },
+      { file: "probability.json", topic: "Probability", count: 15 },
+      { file: "sampling.json", topic: "Sampling & Sampling Distribution", count: 15 },
+      { file: "estimation.json", topic: "Estimation (Confidence Interval)", count: 15 },
+      { file: "hypothesis.json", topic: "Hypothesis Testing", count: 15 },
+      { file: "regression.json", topic: "Regression Basics", count: 15 },
+      { file: "practical.json", topic: "Practical Real-World Applications", count: 10 }
+    ];
+
+    let generated = [];
+
+    for (const item of plan) {
+      try {
+        const res = await fetch(`templates/${item.file}`);
+        if (!res.ok) {
+          alert(`Cannot load ${item.file}`);
+          continue;
+        }
+        const data = await res.json();
+        const pool = []
+          .concat(data.Low || [])
+          .concat(data.Medium || [])
+          .concat(data.High || []);
+        if (!pool.length) continue;
+
+        const shuffled = shuffle(pool);
+        const take = Math.min(item.count, shuffled.length);
+
+        for (let i = 0; i < take; i++) {
+          const q = normalizeQuestion(shuffled[i], `F${generated.length + 1}`);
+          q.topic = item.topic;
+          generated.push(q);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    if (!generated.length) {
+      alert("No questions generated. Check template files.");
+      return;
+    }
+
+    previewData = generated;
+    renderPreviewTable();
+    document.querySelector('[data-tab="previewTab"]').click();
+
+    document.getElementById("finalStatus").textContent =
+      `✅ Generated ${generated.length} balanced questions into Preview.`;
+  }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+</script>
+
+<!-- ========================================================= -->
+<!-- LOAD FROM FIRESTORE -->
+<!-- ========================================================= -->
+<script>
+  async function loadFromFirestore() {
+    const docId = document.getElementById("docIdInput").value.trim() || "current";
+    try {
+      const snap = await db.collection("exam_questions").doc(docId).get();
+      if (!snap.exists) {
+        alert(`exam_questions/${docId} not found.`);
+        return;
+      }
+      const data = snap.data();
+
+      // meta 필드 반영
+      if (data.title) document.getElementById("examTitleInput").value = data.title;
+      if (data.duration) document.getElementById("durationInput").value = data.duration;
+      if (data.version) document.getElementById("examVersionInput").value = data.version;
+
+      const raw = data.questions || [];
+      const qs = Array.isArray(raw) ? raw : Object.values(raw);
+
+      previewData = qs.map((q, idx) => ({
+        id: q.id || `FB${idx + 1}`,
+        topic: q.topic || "",
+        level: q.level || "",
+        question: q.question || q.text || "",
+        opt1: q.opt1 || (q.options && q.options[0]) || "",
+        opt2: q.opt2 || (q.options && q.options[1]) || "",
+        opt3: q.opt3 || (q.options && q.options[2]) || "",
+        opt4: q.opt4 || (q.options && q.options[3]) || "",
+        answer: (typeof q.answer === "number" ? q.answer : parseInt(q.answer || 0, 10)) || 0,
+        use: true
+      }));
+
+      renderPreviewTable();
+      setStatus(`✅ Loaded ${previewData.length} questions from exam_questions/${docId}.`);
+      document.querySelector('[data-tab="previewTab"]').click();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load from Firestore.");
+    }
+  }
+</script>
+
+<!-- ========================================================= -->
+<!-- DELETE EXAM DOC -->
+<!-- ========================================================= -->
+<script>
+  async function deleteExamDoc() {
+    const docId = document.getElementById("docIdInput").value.trim() || "current";
+    if (!confirm(`Delete exam_questions/${docId}? This cannot be undone.`)) return;
+
+    try {
+      await db.collection("exam_questions").doc(docId).delete();
+      setStatus(`🗑 Deleted exam_questions/${docId}.`, "text-red-600");
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed.");
+    }
+  }
+</script>
+
+<!-- ========================================================= -->
+<!-- FIRESTORE EXPLORER & RESULTS -->
+<!-- ========================================================= -->
+<!-- ========================================================= -->
+<!-- FIRESTORE EXPLORER & RESULTS (업그레이드: 학생별 틀린문제 요약) -->
+<!-- ========================================================= -->
+<script>
+  // exam_questions 컬렉션의 특정 docId에서
+  // q.id → { text, options } 형태의 맵을 만든다.
+  async function getExamQuestionMap(docId) {
+    const qSnap = await db.collection("exam_questions").doc(docId).get();
+    if (!qSnap.exists) {
+      console.warn("exam_questions/" + docId + " not found.");
+      return {};
+    }
+    const data = qSnap.data() || {};
+    const raw = data.questions || [];
+    const arr = Array.isArray(raw) ? raw : Object.values(raw);
+
+    const map = {};
+    arr.forEach((q, idx) => {
+      const key = q.id || `Q${idx + 1}`;
+      const options =
+        q.options ||
+        [q.opt1, q.opt2, q.opt3, q.opt4].filter(v => v !== undefined);
+
+      map[key] = {
+        text: q.text || q.question || "",
+        options: options || []
+      };
+    });
+    return map;
+  }
+
+  // exam_questions 컬렉션에 저장된 시험 문서 목록 보기
+  async function listExamDocs() {
+    try {
+      const snap = await db.collection("exam_questions").get();
+      const listEl = document.getElementById("examDocsList");
+      listEl.innerHTML = "";
+      if (snap.empty) {
+        listEl.innerHTML = "<li class='text-sm text-gray-500'>No exam documents.</li>";
+        return;
+      }
+      snap.forEach(doc => {
+        const li = document.createElement("li");
+        li.textContent = doc.id;
+        listEl.appendChild(li);
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Failed to list exam_questions docs.");
+    }
+  }
+
+  // 학생별 응시 결과 + 틀린 문제 요약
+  async function listStudentResults() {
+    const docId = document.getElementById("docIdInput").value.trim() || "current";
+    const area = document.getElementById("resultsArea");
+    area.innerHTML = "<p class='text-sm text-gray-500'>Loading...</p>";
+
+    try {
+      // 1) 문제 맵 먼저 로드
+      const questionMap = await getExamQuestionMap(docId);
+
+      // 2) 응시 결과 로드
+      const snap = await db.collection("exam_responses")
+        .where("examDocId", "==", docId)
+        .get();
+
+      if (snap.empty) {
+        area.innerHTML = "<p class='text-sm text-gray-500'>No responses for this exam yet.</p>";
+        return;
+      }
+
+      const letters = ["A", "B", "C", "D"];
+      let html = "";
+
+      snap.forEach(doc => {
+        const d = doc.data();
+        const sid = d.studentId || doc.id;
+        const name = d.studentName || "";
+        const score = d.score ?? "";
+        const total = d.totalQuestions ?? "";
+        const submittedAt = d.submittedAt || d.finishedAt || "";
+
+        html += `
+          <div class="mb-6 border rounded-xl p-3 bg-white shadow-sm">
+            <div class="flex justify-between items-center mb-2">
+              <div>
+                <p class="font-semibold text-gray-800">
+                  ${sid} &nbsp; ${name ? "(" + name + ")" : ""}
+                </p>
+                <p class="text-xs text-gray-500">
+                  Score: <span class="font-semibold">${score}</span> / ${total}
+                </p>
+              </div>
+              <div class="text-right text-xs text-gray-500">
+                Submitted: ${submittedAt}
+              </div>
+            </div>
+        `;
+
+        const answers = Array.isArray(d.answers) ? d.answers : [];
+        const wrong = answers.filter(a => a && a.correct === false);
+
+        if (!wrong.length) {
+          html += `
+            <p class="text-sm text-green-600 mt-1">
+              ✅ No wrong questions (perfect or no data).
+            </p>
+          </div>`;
+          return;
+        }
+
+        html += `
+          <p class="text-sm font-semibold text-red-600 mb-1">
+            Wrong Questions (${wrong.length})
+          </p>
+          <div class="border rounded-lg overflow-hidden">
+            <table class="min-w-full text-[11px] border-collapse">
+              <thead class="bg-gray-100">
+                <tr>
+                  <th class="border px-2 py-1">#</th>
+                  <th class="border px-2 py-1">Question</th>
+                  <th class="border px-2 py-1">Correct Answer</th>
+                  <th class="border px-2 py-1">Selected Answer</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        wrong.forEach((w, idx) => {
+          const qInfo = questionMap[w.qId] || null;
+          const qText = qInfo ? (qInfo.text || "") : "(Question not found)";
+          const opts = qInfo && Array.isArray(qInfo.options) ? qInfo.options : [];
+
+          const correctIdx = (typeof w.correctIndex === "number") ? w.correctIndex : null;
+          const selectedIdx = (typeof w.selected === "number") ? w.selected : null;
+
+          const correctLabel = (correctIdx != null && correctIdx >= 0 && correctIdx < letters.length)
+            ? letters[correctIdx]
+            : "?";
+          const correctText = (correctIdx != null && opts[correctIdx] !== undefined)
+            ? opts[correctIdx]
+            : "(unknown)";
+
+          let selectedLabel, selectedText;
+          if (selectedIdx == null || selectedIdx < 0 || selectedIdx > 3) {
+            selectedLabel = "-";
+            selectedText = "No answer";
+          } else {
+            selectedLabel = letters[selectedIdx];
+            selectedText = opts[selectedIdx] || "(unknown)";
+          }
+
+          html += `
+            <tr class="bg-white">
+              <td class="border px-2 py-1 text-center">${idx + 1}</td>
+              <td class="border px-2 py-1 text-left">${qText}</td>
+              <td class="border px-2 py-1">
+                <span class="font-semibold">${correctLabel}.</span> ${correctText}
+              </td>
+              <td class="border px-2 py-1">
+                <span class="font-semibold">${selectedLabel}.</span> ${selectedText}
+              </td>
+            </tr>
+          `;
+        });
+
+        html += `
+              </tbody>
+            </table>
+          </div>
+        </div>
+        `;
+      });
+
+      area.innerHTML = html;
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load student results.");
+      area.innerHTML = "<p class='text-sm text-red-600'>Error loading results.</p>";
+    }
+  }
+</script>
+
+
+</body>
+</html>
