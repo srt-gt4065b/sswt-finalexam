@@ -4,437 +4,517 @@
   <meta charset="UTF-8" />
   <title>Statistics with SW Tools - 2025 Fall Final Exam</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body {
+      background: #f3f4f6;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .no-select {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+  </style>
 </head>
+<body class="min-h-screen flex items-center justify-center py-10">
 
-<body class="min-h-screen bg-slate-100 flex items-center justify-center p-4 select-none">
+<!-- ====================== -->
+<!-- Landing: 이름 / 학번 입력 -->
+<!-- ====================== -->
+<div id="landingSection" class="w-full max-w-xl bg-white shadow-xl rounded-2xl p-8 space-y-6">
+  <h1 class="text-2xl font-bold text-purple-600 mb-2 text-center">
+    Statistics with SW Tools - 2025 Fall Final Exam
+  </h1>
+  <p class="text-gray-600 text-sm text-center">
+    Please enter your information carefully. Your <span class="font-semibold">student ID</span> will be used for grading.
+  </p>
 
-  <!-- ===========================
-       LOGIN SCREEN
-  ============================ -->
-  <div id="loginScreen"
-       class="w-full max-w-xl bg-white rounded-2xl shadow-2xl p-6 space-y-6">
+  <div class="space-y-4">
+    <div>
+      <label class="block text-gray-700 font-semibold mb-1">Name</label>
+      <input id="studentNameInput" type="text"
+             class="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+             placeholder="Your full name" />
+    </div>
 
     <div>
-      <h1 class="text-2xl md:text-3xl font-bold text-purple-700 mb-1">
-        Statistics with SW Tools - 2025 Fall Final Exam
-      </h1>
-      <p class="text-sm text-gray-600">
-        Please enter your name and student ID to begin.
+      <label class="block text-gray-700 font-semibold mb-1">Student ID</label>
+      <input id="studentIdInput" type="text"
+             class="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+             placeholder="e.g., 20121039" />
+    </div>
+
+    <div>
+      <label class="block text-gray-700 font-semibold mb-1">Confirm Student ID</label>
+      <input id="studentIdConfirm" type="text"
+             class="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+             placeholder="Re-enter your student ID" />
+      <p id="idMatchError" class="text-red-500 text-xs mt-1 hidden">
+        ❌ The two student IDs do not match. Please check again.
       </p>
-    </div>
-
-    <div class="space-y-4">
-      <div>
-        <label for="studentName" class="block text-sm font-semibold text-gray-700 mb-1">
-          Name
-        </label>
-        <input id="studentName"
-               type="text"
-               class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none" />
-      </div>
-
-      <div>
-        <label for="studentId" class="block text-sm font-semibold text-gray-700 mb-1">
-          Student ID
-        </label>
-        <input id="studentId"
-               type="text"
-               class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-none" />
-      </div>
-    </div>
-
-    <div class="pt-2">
-      <button onclick="openInstructions()"
-              class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl">
-        Continue to Instructions
-      </button>
-    </div>
-
-    <p class="text-xs text-gray-500">
-      You will have <span class="font-semibold">35 minutes</span> to answer all questions.
-      Once you start, you cannot pause or restart the exam.
-    </p>
-  </div>
-
-  <!-- ===========================
-       INSTRUCTIONS MODAL
-  ============================ -->
-  <div id="instructionModal"
-       class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden">
-    <div class="bg-white max-w-2xl w-full mx-4 p-6 rounded-2xl shadow-2xl space-y-4">
-      <h2 class="text-2xl font-bold text-purple-700">
-        Final Exam Instructions
-      </h2>
-
-      <p class="text-sm text-gray-700">
-        This exam is part of <span class="font-semibold">“Statistics with SW Tools”</span>.
-        The exam consists of multiple-choice questions drawn from the course topics.
-        Please read the instructions carefully before starting.
-      </p>
-
-      <ul class="list-disc pl-5 space-y-2 text-sm text-gray-700">
-        <li>Total exam time is <span class="font-semibold">35 minutes</span> (no pause or restart).</li>
-        <li>Only <span class="font-semibold">one attempt per student</span> is allowed. Re-taking is not possible under any circumstances.</li>
-        <li>Questions will appear <span class="font-semibold">one at a time</span>. After you move to the next question, you cannot go back.</li>
-        <li>Question order is <span class="font-semibold">randomized</span> for each student.</li>
-        <li>Do not use AI tools or share questions/answers with others.</li>
-      </ul>
-
-      <div class="flex items-center gap-2 mt-4">
-        <input id="agreeCheck" type="checkbox"
-               class="w-4 h-4 border-gray-400 rounded" />
-        <label for="agreeCheck" class="text-sm text-gray-700">
-          I have read and understood the instructions, and I agree to take this exam honestly.
-        </label>
-      </div>
-
-      <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeInstructions()"
-                class="px-4 py-2 rounded-lg border border-gray-300 text-sm">
-          Cancel
-        </button>
-        <button onclick="beginExamFromModal()"
-                class="px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold">
-          Start Exam
-        </button>
-      </div>
     </div>
   </div>
 
-  <!-- ===========================
-       EXAM SCREEN
-  ============================ -->
-  <div id="examScreen" class="hidden w-full max-w-4xl mx-auto">
+  <button id="openInstructionsBtn"
+          class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl mt-3 disabled:opacity-40"
+          disabled>
+    Continue → Instructions
+  </button>
 
+  <p class="text-xs text-gray-500 text-center mt-2">
+    ※ Your student ID must be correct. Once submitted, it cannot be changed.
+  </p>
+</div>
+
+<!-- =============== -->
+<!-- Exam Section -->
+<!-- =============== -->
+<div id="examSection" class="hidden w-full max-w-5xl">
+  <div class="w-full bg-white rounded-2xl shadow-xl overflow-hidden">
     <!-- Header -->
-    <div class="w-full bg-white rounded-xl shadow-lg p-4 mb-4 flex justify-between items-center">
+    <div class="px-8 py-5 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-3">
       <div>
-        <h2 id="examStudentInfo" class="text-lg font-bold"></h2>
-        <p class="text-xs text-gray-600">
+        <p id="headerStudent" class="font-bold text-lg text-gray-800"></p>
+        <p class="text-sm text-gray-500">
           Statistics with SW Tools - 2025 Fall Final Exam
         </p>
       </div>
-
       <div class="text-right">
-        <div class="text-xs text-gray-500">Time Remaining</div>
-        <div id="timeLeft" class="text-3xl font-bold text-purple-600">35:00</div>
+        <p class="text-xs uppercase tracking-wide text-gray-500">Time Remaining</p>
+        <p id="timerText" class="text-3xl font-extrabold text-purple-600">30:00</p>
       </div>
     </div>
 
-    <!-- Question Card -->
-    <div class="bg-white rounded-2xl shadow-xl p-6 w-full mb-6">
-      <h3 id="questionNumber" class="text-lg font-bold mb-3">
-        Question
-      </h3>
-
-      <p id="questionText" class="text-gray-800 mb-6 text-base leading-relaxed">
-        Loading question...
+    <!-- Question body -->
+    <div class="px-8 py-6">
+      <p id="questionCounter" class="text-sm font-semibold text-gray-500 mb-4">
+        Question 1 of 100
       </p>
+      <h2 id="questionText" class="no-select text-lg md:text-xl font-semibold text-gray-900 mb-6 min-h-[64px]">
+        <!-- question text -->
+      </h2>
 
-      <div class="space-y-3">
-        <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-purple-50">
-          <input type="radio" name="choice" value="0" class="w-4 h-4" />
-          <span id="opt1label" class="text-gray-800 text-sm">Option 1</span>
-        </label>
-        <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-purple-50">
-          <input type="radio" name="choice" value="1" class="w-4 h-4" />
-          <span id="opt2label" class="text-gray-800 text-sm">Option 2</span>
-        </label>
-        <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-purple-50">
-          <input type="radio" name="choice" value="2" class="w-4 h-4" />
-          <span id="opt3label" class="text-gray-800 text-sm">Option 3</span>
-        </label>
-        <label class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-purple-50">
-          <input type="radio" name="choice" value="3" class="w-4 h-4" />
-          <span id="opt4label" class="text-gray-800 text-sm">Option 4</span>
-        </label>
+      <div id="optionsContainer" class="space-y-3">
+        <!-- options -->
       </div>
 
-      <div class="flex justify-end mt-6">
-        <button onclick="nextQuestion()"
-                class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg">
+      <div class="flex justify-end mt-8">
+        <button id="nextBtn"
+                class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2.5 rounded-xl">
           Next →
         </button>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- ===========================
-       FINISH SCREEN
-  ============================ -->
-  <div id="finishScreen" class="hidden w-full max-w-xl mx-auto">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 text-center space-y-4">
-      <h2 class="text-2xl font-bold text-purple-700">🎉 Exam Submitted</h2>
-      <p class="text-sm text-gray-700">
-        Your responses have been saved. Thank you for completing the exam.
-      </p>
-      <p class="text-lg text-gray-800">
-        Your raw score (number of correct answers):
-      </p>
-      <div id="finalScore" class="text-4xl font-extrabold text-purple-600">0</div>
+<!-- =============== -->
+<!-- Result Section -->
+<!-- =============== -->
+<div id="resultSection" class="hidden w-full max-w-xl bg-white rounded-2xl shadow-xl p-8 text-center space-y-4">
+  <h2 class="text-2xl font-bold text-purple-600 mb-2">Exam Submitted</h2>
+  <p class="text-gray-700">
+    Thank you, <span id="resultName" class="font-semibold"></span> (<span id="resultId"></span>).
+  </p>
+  <p class="text-lg">
+    Your score: <span id="resultScore" class="font-bold text-purple-600"></span>
+    / <span id="resultTotal" class="font-semibold"></span>
+  </p>
+  <p class="text-sm text-gray-500">
+    Detailed grading will be announced later by the instructor.
+  </p>
+</div>
 
-      <button onclick="location.reload()"
-              class="mt-4 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl">
-        Return to Start
+<!-- ================= -->
+<!-- Instructions Modal -->
+<!-- ================= -->
+<div id="instructionsModal"
+     class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+  <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 max-h-[90vh] overflow-y-auto">
+    <h2 class="text-2xl font-bold text-purple-600 mb-4 text-center">
+      Final Exam Instructions
+    </h2>
+
+    <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700 mb-4">
+      <li>
+        This exam consists of <span class="font-semibold">100 multiple-choice questions</span>.
+      </li>
+      <li>
+        The <span class="font-semibold">total time limit is 30 minutes (1800 seconds)</span>.
+        This means you must solve all 100 questions within this time.
+        On average, you have <span class="font-semibold">about 18 seconds per question</span>.
+        If you spend too long on difficult or confusing questions, you may fail to reach later
+        questions that you actually know. For your best performance,
+        <span class="font-semibold">quickly guess and move on</span> when a question seems too time-consuming.
+      </li>
+      <li>
+        Once you move to the next question, you <span class="font-semibold">cannot go back</span>.
+        You can change your choice freely while on the same question, but previous questions
+        are locked once you press <span class="font-mono">Next</span>.
+      </li>
+      <li>
+        Do <span class="font-semibold">NOT</span> use AI tools, search engines, or help from others.
+        This exam is designed to evaluate your own understanding.
+      </li>
+      <li>
+        Any attempt to open another window, share questions, or copy text may be considered cheating.
+      </li>
+    </ol>
+
+    <div class="border rounded-xl p-3 bg-purple-50 text-xs text-gray-700 mb-4">
+      <p class="font-semibold text-purple-700 mb-1">Strategy Tip</p>
+      <p>
+        If you notice that you are spending more than 18 seconds on a single question,
+        consider making your best guess and moving on.
+        Solving many “easy and familiar” questions is usually better than spending
+        too much time on a single hard one.
+      </p>
+    </div>
+
+    <div class="space-y-2 mb-4 text-sm text-gray-700">
+      <label class="flex items-start gap-2">
+        <input id="agree1" type="checkbox" class="mt-1">
+        <span>I have carefully read and understood all instructions above.</span>
+      </label>
+      <label class="flex items-start gap-2">
+        <input id="agree2" type="checkbox" class="mt-1">
+        <span>I will not use AI tools or external help during this exam.</span>
+      </label>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-4">
+      <button id="closeInstructionsBtn"
+              class="px-4 py-2 rounded-xl border border-gray-300 text-sm">
+        Back
+      </button>
+      <button id="startExamBtn"
+              class="px-6 py-2 rounded-xl bg-purple-600 text-white font-semibold text-sm disabled:opacity-40"
+              disabled>
+        Start Exam
       </button>
     </div>
   </div>
+</div>
 
-  <!-- ===========================
-       FIREBASE & EXAM LOGIC
-  ============================ -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script>
+  // =====================
+  // Firebase Init
+  // =====================
+  const firebaseConfig = {
+    apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
+    authDomain: "sswt-final.firebaseapp.com",
+    projectId: "sswt-final",
+    storageBucket: "sswt-final.firebasestorage.app",
+    messagingSenderId: "824707188580",
+    appId: "1:824707188580:web:747ba4d91ab781e1a15c71"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-  <script>
-    // =====================
-    // FIREBASE INIT
-    // =====================
-    const firebaseConfig = {
-      apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
-      authDomain: "sswt-final.firebaseapp.com",
-      projectId: "sswt-final",
-      storageBucket: "sswt-final.firebasestorage.app",
-      messagingSenderId: "824707188580",
-      appId: "1:824707188580:web:747ba4d91ab781e1a15c71"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+  // =====================
+  // Global State
+  // =====================
+  const EXAM_DOC_ID = "current";
+  const TOTAL_TIME_SECONDS = 1800; // 30분
 
-    // =====================
-    // GLOBAL STATE
-    // =====================
-    const TOTAL_TIME = 35 * 60; // 35 minutes
-    const EXAM_DOC_ID = "current";
+  let studentName = "";
+  let studentId = "";
+  let questions = [];
+  let currentIndex = 0;
+  let answers = [];
+  let timerInterval = null;
+  let remainingSeconds = TOTAL_TIME_SECONDS;
+  let examStartedAt = null;
 
-    let questions = [];
-    let answers = [];
-    let currentIndex = 0;
-    let examTimerId = null;
-
-    let studentName = "";
-    let studentId = "";
-
-    // =====================
-    // UTILS
-    // =====================
-    function shuffle(arr) {
-      const a = [...arr];
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a;
+  // =====================
+  // Utility
+  // =====================
+  function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
+  }
 
-    // =====================
-    // LOGIN / INSTRUCTIONS
-    // =====================
-    function openInstructions() {
-      const name = document.getElementById("studentName").value.trim();
-      const id = document.getElementById("studentId").value.trim();
-
-      if (!name || !id) {
-        alert("Please enter both your name and student ID.");
-        return;
-      }
-      studentName = name;
-      studentId = id;
-
-      document.getElementById("instructionModal").classList.remove("hidden");
+  function shuffleOptions(q) {
+    if (!q.options || q.options.length !== 4) return;
+    const opts = q.options.map((text, idx) => ({ text, index: idx }));
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
     }
+    q.options = opts.map(o => o.text);
+    q.answer = opts.findIndex(o => o.index === q.answer);
+  }
 
-    function closeInstructions() {
-      document.getElementById("instructionModal").classList.add("hidden");
-    }
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, "0");
+    const s = (sec % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  }
 
-    async function beginExamFromModal() {
-      const agree = document.getElementById("agreeCheck").checked;
-      if (!agree) {
-        alert("You must confirm that you have read and understood the instructions.");
-        return;
-      }
-
-      // 재응시 여부 확인
-      const canTake = await verifyAttempt(studentId);
-      if (!canTake) {
-        alert("You have already taken this exam. Retake is not allowed.");
-        return;
-      }
-
-      document.getElementById("instructionModal").classList.add("hidden");
-      await startExam();
-    }
-
-    // =====================
-    // FIRESTORE HELPERS
-    // =====================
-    async function verifyAttempt(id) {
-      try {
-        const snap = await db.collection("exam_responses").doc(id).get();
-        return !snap.exists;
-      } catch (err) {
-        console.error("Error checking attempt:", err);
-        // 문제가 있어도 시험은 볼 수 있게 true 반환
-        return true;
-      }
-    }
-
-    async function loadQuestions(docId = EXAM_DOC_ID) {
-      try {
-        const snap = await db.collection("exam_questions").doc(docId).get();
-        if (!snap.exists) {
-          alert("Exam questions not found. Please contact your instructor.");
-          return false;
-        }
-
-        const data = snap.data();
-        let raw = data.questions || [];
-        let array = Array.isArray(raw) ? raw : Object.values(raw);
-
-        // Firestore → index.html 구조로 변환
-        questions = array.map(q => ({
-          text: q.text || q.question || "",        // 지원
-          options: q.options || [q.opt1, q.opt2, q.opt3, q.opt4],
-          answer: q.answer,
-          topic: q.topic || "",
-          level: q.level || "",
-          id: q.id || ""
-        }));
-
-        if (!questions.length) {
-          alert("No questions are available in the exam set.");
-          return false;
-        }
-        return true;
-      } catch (err) {
-        console.error("Error loading questions:", err);
-        alert("Failed to load exam questions.");
+  // =====================
+  // Load Questions from Firestore
+  // =====================
+  async function loadQuestions(docId = EXAM_DOC_ID) {
+    try {
+      const snap = await db.collection("exam_questions").doc(docId).get();
+      if (!snap.exists) {
+        alert("Exam questions not found. Please contact your instructor.");
         return false;
       }
+
+      const data = snap.data();
+      let raw = data.questions || [];
+      let arr = Array.isArray(raw) ? raw : Object.values(raw);
+
+      questions = arr.map((q, idx) => ({
+        id: q.id || `Q${idx + 1}`,
+        text: q.text || q.question || "",
+        options: q.options || [q.opt1, q.opt2, q.opt3, q.opt4],
+        answer: typeof q.answer === "number"
+          ? q.answer
+          : parseInt(q.answer || 0, 10),
+        topic: q.topic || "",
+        level: q.level || ""
+      })).filter(q => q.text && q.options && q.options[0] !== undefined);
+
+      if (!questions.length) {
+        alert("No valid questions available.");
+        return false;
+      }
+
+      // Shuffle question order & options
+      shuffleArray(questions);
+      questions.forEach(q => shuffleOptions(q));
+
+      return true;
+    } catch (err) {
+      console.error("Error loading questions:", err);
+      alert("Failed to load exam questions.");
+      return false;
+    }
+  }
+
+  // =====================
+  // Render Question
+  // =====================
+  function showQuestion() {
+    const q = questions[currentIndex];
+    const total = questions.length;
+
+    document.getElementById("questionCounter").textContent =
+      `Question ${currentIndex + 1} of ${total}`;
+
+    document.getElementById("questionText").textContent = q.text;
+
+    const container = document.getElementById("optionsContainer");
+    container.innerHTML = "";
+
+    const selectedIndex = answers[currentIndex];
+
+    q.options.forEach((opt, idx) => {
+      const id = `q${currentIndex}_opt${idx}`;
+
+      const wrapper = document.createElement("label");
+      wrapper.className =
+        "no-select flex items-center gap-3 w-full border rounded-xl px-4 py-3 cursor-pointer hover:bg-purple-50";
+
+      const radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = "option";
+      radio.value = idx;
+      radio.id = id;
+      radio.className = "h-4 w-4";
+      if (selectedIndex === idx) radio.checked = true;
+
+      radio.addEventListener("change", () => {
+        answers[currentIndex] = idx;
+      });
+
+      const span = document.createElement("span");
+      span.className = "text-sm md:text-base text-gray-800";
+      span.textContent = opt;
+
+      wrapper.appendChild(radio);
+      wrapper.appendChild(span);
+      container.appendChild(wrapper);
+    });
+
+    const nextBtn = document.getElementById("nextBtn");
+    if (currentIndex === total - 1) {
+      nextBtn.textContent = "Submit Exam";
+    } else {
+      nextBtn.textContent = "Next →";
+    }
+  }
+
+  // =====================
+  // Timer
+  // =====================
+  function startTimer() {
+    remainingSeconds = TOTAL_TIME_SECONDS;
+    document.getElementById("timerText").textContent = formatTime(remainingSeconds);
+
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      remainingSeconds--;
+      if (remainingSeconds < 0) {
+        clearInterval(timerInterval);
+        finishExam(true);
+        return;
+      }
+      document.getElementById("timerText").textContent = formatTime(remainingSeconds);
+    }, 1000);
+  }
+
+  // =====================
+  // Finish Exam & Save
+  // =====================
+  async function finishExam(timeUp = false) {
+    if (timerInterval) clearInterval(timerInterval);
+
+    // 점수 계산
+    let correctCount = 0;
+    const detail = questions.map((q, idx) => {
+      const selected = answers[idx];
+      const isCorrect = selected === q.answer;
+      if (isCorrect) correctCount++;
+      return {
+        qId: q.id,
+        selected,
+        correctIndex: q.answer,
+        correct: isCorrect
+      };
+    });
+
+    document.getElementById("examSection").classList.add("hidden");
+    document.getElementById("resultSection").classList.remove("hidden");
+
+    document.getElementById("resultName").textContent = studentName;
+    document.getElementById("resultId").textContent = studentId;
+    document.getElementById("resultScore").textContent = correctCount;
+    document.getElementById("resultTotal").textContent = questions.length;
+
+    // Firestore 기록
+    try {
+      await db.collection("exam_responses").add({
+        examDocId: EXAM_DOC_ID,
+        studentName,
+        studentId,
+        startedAt: examStartedAt,
+        finishedAt: new Date().toISOString(),
+        timeUsedSeconds: TOTAL_TIME_SECONDS - Math.max(remainingSeconds, 0),
+        score: correctCount,
+        totalQuestions: questions.length,
+        timeUp,
+        answers: detail,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (err) {
+      console.error("Failed to save exam response:", err);
+    }
+  }
+
+  // =====================
+  // Event Wiring
+  // =====================
+  document.addEventListener("DOMContentLoaded", () => {
+    const nameInput = document.getElementById("studentNameInput");
+    const idInput = document.getElementById("studentIdInput");
+    const idConfirm = document.getElementById("studentIdConfirm");
+    const openInstructionsBtn = document.getElementById("openInstructionsBtn");
+    const idMatchError = document.getElementById("idMatchError");
+
+    function validateLanding() {
+      const name = nameInput.value.trim();
+      const id1 = idInput.value.trim();
+      const id2 = idConfirm.value.trim();
+
+      const basicOk = name.length > 0 && id1.length > 0 && id2.length > 0;
+      const same = id1 === id2;
+
+      if (!same && id1 && id2) {
+        idMatchError.classList.remove("hidden");
+      } else {
+        idMatchError.classList.add("hidden");
+      }
+      openInstructionsBtn.disabled = !(basicOk && same);
     }
 
-    // =====================
-    // EXAM FLOW
-    // =====================
-    async function startExam() {
-      const loaded = await loadQuestions(EXAM_DOC_ID);
-      if (!loaded) return;
+    nameInput.addEventListener("input", validateLanding);
+    idInput.addEventListener("input", validateLanding);
+    idConfirm.addEventListener("input", validateLanding);
 
-      questions = shuffle(questions);
+    openInstructionsBtn.addEventListener("click", () => {
+      document.getElementById("instructionsModal").classList.remove("hidden");
+    });
+
+    document.getElementById("closeInstructionsBtn").addEventListener("click", () => {
+      document.getElementById("instructionsModal").classList.add("hidden");
+    });
+
+    const agree1 = document.getElementById("agree1");
+    const agree2 = document.getElementById("agree2");
+    const startExamBtn = document.getElementById("startExamBtn");
+
+    function validateAgreements() {
+      startExamBtn.disabled = !(agree1.checked && agree2.checked);
+    }
+    agree1.addEventListener("change", validateAgreements);
+    agree2.addEventListener("change", validateAgreements);
+
+    startExamBtn.addEventListener("click", async () => {
+      studentName = nameInput.value.trim();
+      studentId = idInput.value.trim();
+
+      document.getElementById("instructionsModal").classList.add("hidden");
+      document.getElementById("landingSection").classList.add("hidden");
+      document.getElementById("examSection").classList.remove("hidden");
+
+      document.getElementById("headerStudent").textContent =
+        `${studentName} (${studentId})`;
+
+      const ok = await loadQuestions();
+      if (!ok) {
+        alert("Exam cannot be started. Please contact your instructor.");
+        location.reload();
+        return;
+      }
+
       answers = new Array(questions.length).fill(null);
       currentIndex = 0;
-
-      // UI 전환
-      document.getElementById("loginScreen").classList.add("hidden");
-      document.getElementById("examScreen").classList.remove("hidden");
-      document.getElementById("examStudentInfo").textContent =
-        `${studentName} (${studentId})`;
+      examStartedAt = new Date().toISOString();
 
       startTimer();
       showQuestion();
-    }
+    });
 
-    function startTimer() {
-      let remaining = TOTAL_TIME;
-
-      if (examTimerId) clearInterval(examTimerId);
-
-      examTimerId = setInterval(() => {
-        remaining--;
-
-        const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
-        const ss = String(remaining % 60).padStart(2, "0");
-        document.getElementById("timeLeft").textContent = `${mm}:${ss}`;
-
-        if (remaining <= 0) {
-          clearInterval(examTimerId);
-          finishExam();
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      if (currentIndex < questions.length - 1) {
+        currentIndex++;
+        showQuestion();
+      } else {
+        if (confirm("Submit your answers now? You cannot change them afterwards.")) {
+          finishExam(false);
         }
-      }, 1000);
-    }
-
-    function showQuestion() {
-      const q = questions[currentIndex];
-      if (!q) return;
-
-      document.getElementById("questionNumber").textContent =
-        `Question ${currentIndex + 1} of ${questions.length}`;
-      document.getElementById("questionText").textContent = q.text || "";
-
-      const opts = q.options || ["", "", "", ""];
-
-      document.getElementById("opt1label").textContent = opts[0] || "";
-      document.getElementById("opt2label").textContent = opts[1] || "";
-      document.getElementById("opt3label").textContent = opts[2] || "";
-      document.getElementById("opt4label").textContent = opts[3] || "";
-
-      // 기존 선택 복원
-      const saved = answers[currentIndex];
-      document.querySelectorAll("input[name='choice']").forEach(r => {
-        r.checked = (parseInt(r.value, 10) === saved);
-      });
-    }
-
-    function nextQuestion() {
-      const selected = document.querySelector("input[name='choice']:checked");
-      if (!selected) {
-        alert("Please select an answer before moving on.");
-        return;
       }
+    });
 
-      answers[currentIndex] = parseInt(selected.value, 10);
-
-      // 선택 초기화
-      document.querySelectorAll("input[name='choice']").forEach(r => {
-        r.checked = false;
-      });
-
-      currentIndex++;
-      if (currentIndex >= questions.length) {
-        finishExam();
-        return;
-      }
-      showQuestion();
-    }
-
-    async function finishExam() {
-      if (examTimerId) clearInterval(examTimerId);
-
-      let score = 0;
-      for (let i = 0; i < questions.length; i++) {
-        const correct = typeof questions[i].answer === "number"
-          ? questions[i].answer
-          : parseInt(questions[i].answer || 0, 10);
-
-        if (answers[i] === correct) score++;
-      }
-
-      const payload = {
-        studentId,
-        name: studentName,
-        score,
-        totalQuestions: questions.length,
-        selectedAnswers: answers,
-        correctAnswers: questions.map(q =>
-          typeof q.answer === "number" ? q.answer : parseInt(q.answer || 0, 10)
-        ),
-        examVersion: EXAM_DOC_ID,
-        submittedAt: new Date().toISOString()
-      };
-
-      try {
-        await db.collection("exam_responses").doc(studentId).set(payload);
-      } catch (err) {
-        console.error("Error saving responses:", err);
-        alert("There was a problem saving your answers, but the exam will now end.");
-      }
-
-      document.getElementById("examScreen").classList.add("hidden");
-      document.getElementById("finishScreen").classList.remove("hidden");
-      document.getElementById("finalScore").textContent = score;
-    }
-  </script>
+    // 텍스트 복사 방지
+    document.addEventListener("copy", (e) => {
+      e.preventDefault();
+    });
+  });
+</script>
 </body>
 </html>
