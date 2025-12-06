@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin – Student Results</title>
+<title>Student Exam Results</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -10,17 +10,20 @@
 
 <body class="bg-gray-100 p-10">
 
-<h1 class="text-3xl font-bold mb-6 text-purple-600">📊 Student Exam Results</h1>
+<h1 class="text-3xl font-bold mb-8 text-purple-600 flex items-center">
+    <span>📊 Student Exam Results</span>
+</h1>
 
-<!-- ==================== LEFT STUDENT LIST ==================== -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
 
+<!-- ========== LEFT: STUDENT LIST ========== -->
 <div class="bg-white shadow-lg p-6 rounded-xl">
     <h2 class="text-xl font-bold mb-4">Students</h2>
-    <table class="w-full text-left">
+
+    <table class="w-full text-left text-sm">
         <thead>
             <tr class="border-b">
-                <th class="py-2">Name</th>
+                <th class="py-2 px-2">Name</th>
                 <th>ID</th>
                 <th>Score</th>
                 <th>Time</th>
@@ -30,9 +33,10 @@
     </table>
 </div>
 
-<!-- ==================== RIGHT WRONG ANSWERS ==================== -->
+<!-- ========== RIGHT: SELECTED STUDENT DETAILS ========== -->
 <div class="bg-white shadow-lg p-6 rounded-xl md:col-span-2">
-    <h2 class="text-xl font-bold mb-4">Wrong questions</h2>
+    <h2 id="detailsTitle" class="text-xl font-bold mb-4">Student’s Test Details</h2>
+
     <table class="w-full text-left text-sm">
         <thead>
             <tr class="border-b bg-gray-50">
@@ -42,13 +46,12 @@
                 <th class="px-2">Selected Answer</th>
             </tr>
         </thead>
-        <tbody id="wrongTableBody"></tbody>
+        <tbody id="detailsTableBody"></tbody>
     </table>
 </div>
 
 </div>
 
-<!-- ==================== FIREBASE + LOGIC ==================== -->
 <script>
 /* ------------------------------------------------------
    FIREBASE INIT
@@ -62,9 +65,10 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 let questionBank = [];
+let selectedRow = null;
 
 /* ------------------------------------------------------
-   1) 문제은행 로드 (exam_questions/current)
+   LOAD QUESTION BANK
 ------------------------------------------------------ */
 async function loadQuestionBank() {
     const doc = await db.collection("exam_questions").doc("current").get();
@@ -72,7 +76,7 @@ async function loadQuestionBank() {
     if (!data) return;
 
     questionBank = data.questions.map(q => ({
-        id: q.id,
+        qId: q.id,
         text: q.question,
         options: q.options ?? [q.opt1, q.opt2, q.opt3, q.opt4],
         correct: q.answer
@@ -80,7 +84,7 @@ async function loadQuestionBank() {
 }
 
 /* ------------------------------------------------------
-   2) 제출한 학생들 불러오기
+   LOAD STUDENTS
 ------------------------------------------------------ */
 async function loadStudents() {
     const snap = await db.collection("exam_responses").get();
@@ -89,20 +93,24 @@ async function loadStudents() {
 
     snap.forEach(doc => {
         const d = doc.data();
-        table.insertAdjacentHTML("beforeend", `
-            <tr class="border-b hover:bg-purple-50 cursor-pointer"
-                onclick="onStudentClick('${doc.id}')">
-                <td class="py-2">${d.studentName}</td>
-                <td>${d.studentId}</td>
-                <td>${d.score}</td>
-                <td>${d.timeUsedSeconds}s</td>
-            </tr>
-        `);
+        const tr = document.createElement("tr");
+        tr.className =
+            "border-b hover:bg-purple-50 cursor-pointer transition";
+        tr.onclick = () => onStudentClick(tr, doc.id);
+
+        tr.innerHTML = `
+            <td class="py-2 px-2">${d.studentName ?? "(no name)"}</td>
+            <td>${d.studentId}</td>
+            <td>${d.score}</td>
+            <td>${d.timeUsedSeconds}s</td>
+        `;
+
+        table.appendChild(tr);
     });
 }
 
 /* ------------------------------------------------------
-   3) 특정 학생 응답 문서 가져오기
+   GET STUDENT RESPONSE
 ------------------------------------------------------ */
 async function getStudentResponse(docId) {
     const doc = await db.collection("exam_responses").doc(docId).get();
@@ -110,39 +118,61 @@ async function getStudentResponse(docId) {
 }
 
 /* ------------------------------------------------------
-   4) 오답 표시
+   SHOW FULL 100 QUESTIONS, MARK CORRECT/WRONG
 ------------------------------------------------------ */
-function showWrongAnswers(studentData) {
-    const tbody = document.getElementById("wrongTableBody");
+function showStudentDetails(studentData) {
+
+    const tbody = document.getElementById("detailsTableBody");
     tbody.innerHTML = "";
 
+    let correctCount = 0;
+
     studentData.answers.forEach((ans, idx) => {
-        const q = questionBank.find(q => q.id === ans.qId);
+        const q = questionBank.find(q => q.qId === ans.qId);
         if (!q) return;
 
-        const correctText = q.options[q.correct];
-        const selectedText = q.options[ans.selected] ?? "(no answer)";
-        
-        if (ans.selected === q.correct) return;  // 정답이면 pass
+        const correctAns = q.options[q.correct];
+        const selectedAns = ans.selected != null ? q.options[ans.selected] : "(no answer)";
+
+        const isCorrect = ans.selected === q.correct;
+        if (isCorrect) correctCount++;
 
         tbody.insertAdjacentHTML("beforeend", `
             <tr class="border-b">
-                <td class="py-2">${idx + 1}</td>
+                <td class="py-2 px-2">${idx + 1}</td>
                 <td class="px-2">${q.text}</td>
-                <td class="px-2 font-semibold text-green-600">${correctText}</td>
-                <td class="px-2 text-red-600">${selectedText}</td>
+
+                <td class="px-2 font-semibold text-green-600">${correctAns}</td>
+
+                <td class="px-2 font-semibold ${
+                    isCorrect ? "text-green-600" : "text-red-600"
+                }">
+                    ${selectedAns}
+                </td>
             </tr>
         `);
     });
+
+    // Update the title with (correct / total)
+    const title = document.getElementById("detailsTitle");
+    title.textContent = `Student’s Test Details (${correctCount}/100)`;
 }
 
 /* ------------------------------------------------------
-   5) 학생 클릭 시 실행되는 함수
+   STUDENT CLICK ACTION
 ------------------------------------------------------ */
-async function onStudentClick(docId) {
+async function onStudentClick(row, docId) {
+
+    // Remove old highlight
+    if (selectedRow) selectedRow.classList.remove("bg-purple-100", "border-l-4", "border-purple-600");
+
+    // Add highlight to selected row
+    row.classList.add("bg-purple-100", "border-l-4", "border-purple-600");
+    selectedRow = row;
+
     await loadQuestionBank();
     const studentData = await getStudentResponse(docId);
-    showWrongAnswers(studentData);
+    showStudentDetails(studentData);
 }
 
 /* ------------------------------------------------------
