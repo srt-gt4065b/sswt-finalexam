@@ -1,305 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Admin – Final Exam Results Viewer</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<meta charset="UTF-8">
+<title>Admin – Student Results</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 min-h-screen">
-  <!-- Password Gate -->
-  <div id="passwordGate"
-       class="fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
-    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
-      <h1 class="text-2xl font-bold text-purple-600 mb-2">Admin Access</h1>
-      <p class="text-sm text-slate-600 mb-4">
-        Enter admin password to view exam results.
-      </p>
-      <input id="adminPass"
-             type="password"
-             class="w-full border rounded-lg px-3 py-2 text-center text-lg focus:ring-2 focus:ring-purple-500"
-             placeholder="Admin password" />
-      <button onclick="checkAdminPassword()"
-              class="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded-lg">
-        Unlock
-      </button>
-      <p id="passError" class="hidden text-sm text-red-500 font-semibold mt-3">
-        ❌ Incorrect password. Try again.
-      </p>
-    </div>
-  </div>
 
-  <!-- Main Container -->
-  <div class="max-w-7xl mx-auto px-4 py-6">
-    <header class="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-      <div>
-        <h1 class="text-3xl font-bold text-purple-700">
-          Statistics with SW Tools – 2025 Fall Final Exam
-        </h1>
-        <p class="text-slate-600 mt-1">
-          Admin dashboard for reviewing student responses and wrong questions.
-        </p>
-      </div>
-      <div class="bg-white shadow rounded-xl px-4 py-2 text-right">
-        <p class="text-xs uppercase tracking-wide text-slate-400">Exam version</p>
-        <p class="font-mono text-sm"><span class="font-semibold">exam_questions /</span> current</p>
-      </div>
-    </header>
+<body class="bg-gray-100 p-10">
 
-    <!-- Controls -->
-    <section class="mb-4 flex flex-wrap items-center gap-3">
-      <button onclick="loadStudentResponses()"
-              class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg shadow">
-        <span>🔄 Load student responses</span>
-      </button>
-      <p id="statusMsg" class="text-sm text-slate-600"></p>
-    </section>
+<h1 class="text-3xl font-bold mb-6 text-purple-600">📊 Student Exam Results</h1>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Student summary table -->
-      <section class="lg:col-span-1 bg-white rounded-2xl shadow p-4 flex flex-col min-h-[300px]">
-        <h2 class="text-lg font-semibold text-slate-800 mb-2">Students</h2>
-        <p class="text-xs text-slate-500 mb-2">
-          Click a row to see that student's wrong questions.
-        </p>
-        <div class="border rounded-xl overflow-hidden flex-1 min-h-[220px]">
-          <table class="min-w-full text-xs">
-            <thead class="bg-slate-50 border-b text-slate-500">
-              <tr>
-                <th class="px-2 py-1 text-left">#</th>
-                <th class="px-2 py-1 text-left">Student</th>
-                <th class="px-2 py-1 text-right">Score</th>
-                <th class="px-2 py-1 text-right">Wrong</th>
-                <th class="px-2 py-1 text-right">Submitted</th>
-              </tr>
-            </thead>
-            <tbody id="studentTableBody" class="divide-y">
-              <tr>
-                <td colspan="5" class="px-3 py-4 text-center text-slate-400 text-xs">
-                  Click “Load student responses” to fetch data.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+<!-- ==================== LEFT STUDENT LIST ==================== -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
 
-      <!-- Detail table -->
-      <section class="lg:col-span-2 bg-white rounded-2xl shadow p-4 flex flex-col min-h-[300px]">
-        <div class="flex items-center justify-between mb-2">
-          <div>
-            <h2 class="text-lg font-semibold text-slate-800">
-              Wrong questions – <span id="detailStudentLabel" class="text-purple-600">no student selected</span>
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">
-              Shows only questions where the selected answer does not match the correct answer.
-            </p>
-          </div>
-        </div>
-        <div class="border rounded-xl overflow-auto flex-1 min-h-[220px]">
-          <table class="min-w-full text-xs">
-            <thead class="bg-slate-50 border-b text-slate-500">
-              <tr>
-                <th class="px-2 py-1 text-left w-12">Q#</th>
-                <th class="px-2 py-1 text-left w-[45%]">Question</th>
-                <th class="px-2 py-1 text-left w-[25%]">Correct answer</th>
-                <th class="px-2 py-1 text-left w-[25%]">Selected answer</th>
-              </tr>
-            </thead>
-            <tbody id="detailTableBody" class="divide-y">
-              <tr>
-                <td colspan="4" class="px-3 py-4 text-center text-slate-400 text-xs">
-                  Select a student from the left to view details.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-  </div>
+<div class="bg-white shadow-lg p-6 rounded-xl">
+    <h2 class="text-xl font-bold mb-4">Students</h2>
+    <table class="w-full text-left">
+        <thead>
+            <tr class="border-b">
+                <th class="py-2">Name</th>
+                <th>ID</th>
+                <th>Score</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody id="studentTableBody"></tbody>
+    </table>
+</div>
 
+<!-- ==================== RIGHT WRONG ANSWERS ==================== -->
+<div class="bg-white shadow-lg p-6 rounded-xl md:col-span-2">
+    <h2 class="text-xl font-bold mb-4">Wrong questions</h2>
+    <table class="w-full text-left text-sm">
+        <thead>
+            <tr class="border-b bg-gray-50">
+                <th class="py-2 px-2">#</th>
+                <th class="px-2">Question</th>
+                <th class="px-2">Correct Answer</th>
+                <th class="px-2">Selected Answer</th>
+            </tr>
+        </thead>
+        <tbody id="wrongTableBody"></tbody>
+    </table>
+</div>
+
+</div>
+
+<!-- ==================== FIREBASE + LOGIC ==================== -->
 <script>
-// =====================
-// Password gate
-// =====================
-function checkAdminPassword() {
-  const input = document.getElementById("adminPass").value.trim();
-  if (input === "1230") {
-    document.getElementById("passwordGate").classList.add("hidden");
-  } else {
-    document.getElementById("passError").classList.remove("hidden");
-  }
-}
-
-// =====================
-// Firebase init
-// =====================
+/* ------------------------------------------------------
+   FIREBASE INIT
+------------------------------------------------------ */
 const firebaseConfig = {
-  apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
-  authDomain: "sswt-final.firebaseapp.com",
-  projectId: "sswt-final",
-  storageBucket: "sswt-final.firebasestorage.app",
-  messagingSenderId: "824707188580",
-  appId: "1:824707188580:web:747ba4d91ab781e1a15c71"
+    apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
+    authDomain: "sswt-final.firebaseapp.com",
+    projectId: "sswt-final"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-let examQuestions = [];
-let studentDocs = [];
+let questionBank = [];
 
-// helper: index -> A/B/C/D
-function idxToLetter(idx) {
-  const map = ["A", "B", "C", "D"];
-  return map[idx] || "?";
+/* ------------------------------------------------------
+   1) 문제은행 로드 (exam_questions/current)
+------------------------------------------------------ */
+async function loadQuestionBank() {
+    const doc = await db.collection("exam_questions").doc("current").get();
+    const data = doc.data();
+    if (!data) return;
+
+    questionBank = data.questions.map(q => ({
+        id: q.id,
+        text: q.question,
+        options: q.options ?? [q.opt1, q.opt2, q.opt3, q.opt4],
+        correct: q.answer
+    }));
 }
 
-// Load exam_questions/current once
-async function ensureExamQuestions() {
-  if (examQuestions.length) return examQuestions;
-  const snap = await db.collection("exam_questions").doc("current").get();
-  if (!snap.exists) {
-    throw new Error("exam_questions/current document not found.");
-  }
-  const data = snap.data() || {};
-  examQuestions = data.questions || [];
-  return examQuestions;
-}
-
-// =====================
-// Load student responses
-// =====================
-async function loadStudentResponses() {
-  const statusEl = document.getElementById("statusMsg");
-  const tbody = document.getElementById("studentTableBody");
-  const detailBody = document.getElementById("detailTableBody");
-  const detailLabel = document.getElementById("detailStudentLabel");
-
-  statusEl.textContent = "Loading questions and responses...";
-  statusEl.className = "text-sm text-slate-600";
-
-  try {
-    await ensureExamQuestions();
-
+/* ------------------------------------------------------
+   2) 제출한 학생들 불러오기
+------------------------------------------------------ */
+async function loadStudents() {
     const snap = await db.collection("exam_responses").get();
-    if (snap.empty) {
-      tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-slate-400 text-xs">No exam responses found.</td></tr>';
-      statusEl.textContent = "No exam_responses documents found.";
-      return;
-    }
+    const table = document.getElementById("studentTableBody");
+    table.innerHTML = "";
 
-    studentDocs = snap.docs.map(d => ({ id: d.id, data: d.data() }));
-
-    let rows = "";
-    studentDocs.forEach((doc, idx) => {
-      const d = doc.data;
-      const totalQ = (d.totalQuestions || (d.correctAnswers ? d.correctAnswers.length : 0)) || examQuestions.length;
-      const wrongCount = (d.correctAnswers && d.selectedAnswers)
-        ? d.correctAnswers.reduce((acc, correct, i) => {
-            const sel = d.selectedAnswers[i];
-            return acc + (sel !== correct ? 1 : 0);
-          }, 0)
-        : null;
-
-      const submitted = d.submittedAt || "";
-      const label = d.name ? `${d.name} (${d.studentId || doc.id})` : (d.studentId || doc.id);
-
-      rows += `
-        <tr class="hover:bg-purple-50 cursor-pointer"
-            onclick="showStudentDetails('${doc.id.replace(/'/g, "\\'")}')">
-          <td class="px-2 py-1 align-middle text-slate-500">${idx + 1}</td>
-          <td class="px-2 py-1 align-middle">
-            <div class="text-[11px] font-semibold text-slate-800">${label}</div>
-          </td>
-          <td class="px-2 py-1 align-middle text-right font-mono text-[11px]">
-            ${d.score ?? "-"}/${totalQ}
-          </td>
-          <td class="px-2 py-1 align-middle text-right font-mono text-[11px]">
-            ${wrongCount ?? "-"}
-          </td>
-          <td class="px-2 py-1 align-middle text-right text-[11px] text-slate-500">
-            ${submitted}
-          </td>
-        </tr>
-      `;
+    snap.forEach(doc => {
+        const d = doc.data();
+        table.insertAdjacentHTML("beforeend", `
+            <tr class="border-b hover:bg-purple-50 cursor-pointer"
+                onclick="onStudentClick('${doc.id}')">
+                <td class="py-2">${d.studentName}</td>
+                <td>${d.studentId}</td>
+                <td>${d.score}</td>
+                <td>${d.timeUsedSeconds}s</td>
+            </tr>
+        `);
     });
-
-    tbody.innerHTML = rows;
-    detailBody.innerHTML = '<tr><td colspan="4" class="px-3 py-4 text-center text-slate-400 text-xs">Select a student from the left to view details.</td></tr>';
-    detailLabel.textContent = "no student selected";
-
-    statusEl.textContent = `Loaded ${studentDocs.length} students.`;
-    statusEl.className = "text-sm text-emerald-700 font-medium";
-
-  } catch (err) {
-    console.error(err);
-    statusEl.textContent = "Error loading data: " + err.message;
-    statusEl.className = "text-sm text-red-600";
-  }
 }
 
-// =====================
-// Show details for one student
-// =====================
-function showStudentDetails(docId) {
-  const detailBody = document.getElementById("detailTableBody");
-  const detailLabel = document.getElementById("detailStudentLabel");
-
-  const found = studentDocs.find(d => d.id === docId);
-  if (!found) return;
-
-  const d = found.data;
-  const label = d.name ? `${d.name} (${d.studentId || found.id})` : (d.studentId || found.id);
-  detailLabel.textContent = label;
-
-  const correct = d.correctAnswers || [];
-  const selected = d.selectedAnswers || [];
-  const qArr = examQuestions;
-
-  let rows = "";
-  let wrongCounter = 0;
-
-  for (let i = 0; i < qArr.length; i++) {
-    const q = qArr[i];
-    const correctIdx = typeof correct[i] === "number" ? correct[i] : q.answer;
-    const selectedIdx = typeof selected[i] === "number" ? selected[i] : null;
-
-    if (selectedIdx === correctIdx) {
-      continue; // skip correct questions
-    }
-
-    wrongCounter++;
-
-    const opts = q.options || ["", "", "", ""];
-    const correctText = (correctIdx != null && opts[correctIdx] != null)
-      ? idxToLetter(correctIdx) + ". " + opts[correctIdx]
-      : "(not available)";
-
-    let selectedText;
-    if (selectedIdx == null || selectedIdx < 0 || opts[selectedIdx] == null) {
-      selectedText = "(no answer)";
-    } else {
-      selectedText = idxToLetter(selectedIdx) + ". " + opts[selectedIdx];
-    }
-
-    rows += `
-      <tr class="align-top">
-        <td class="px-2 py-1 text-slate-500">${i + 1}</td>
-        <td class="px-2 py-1 text-[11px] text-slate-800">${q.text || ""}</td>
-        <td class="px-2 py-1 text-[11px] text-emerald-700">${correctText}</td>
-        <td class="px-2 py-1 text-[11px] text-red-600">${selectedText}</td>
-      </tr>
-    `;
-  }
-
-  if (!rows) {
-    rows = '<tr><td colspan="4" class="px-3 py-4 text-center text-slate-400 text-xs">No wrong questions for this student 🎉</td></tr>';
-  }
-
-  detailBody.innerHTML = rows;
+/* ------------------------------------------------------
+   3) 특정 학생 응답 문서 가져오기
+------------------------------------------------------ */
+async function getStudentResponse(docId) {
+    const doc = await db.collection("exam_responses").doc(docId).get();
+    return doc.data();
 }
+
+/* ------------------------------------------------------
+   4) 오답 표시
+------------------------------------------------------ */
+function showWrongAnswers(studentData) {
+    const tbody = document.getElementById("wrongTableBody");
+    tbody.innerHTML = "";
+
+    studentData.answers.forEach((ans, idx) => {
+        const q = questionBank.find(q => q.id === ans.qId);
+        if (!q) return;
+
+        const correctText = q.options[q.correct];
+        const selectedText = q.options[ans.selected] ?? "(no answer)";
+        
+        if (ans.selected === q.correct) return;  // 정답이면 pass
+
+        tbody.insertAdjacentHTML("beforeend", `
+            <tr class="border-b">
+                <td class="py-2">${idx + 1}</td>
+                <td class="px-2">${q.text}</td>
+                <td class="px-2 font-semibold text-green-600">${correctText}</td>
+                <td class="px-2 text-red-600">${selectedText}</td>
+            </tr>
+        `);
+    });
+}
+
+/* ------------------------------------------------------
+   5) 학생 클릭 시 실행되는 함수
+------------------------------------------------------ */
+async function onStudentClick(docId) {
+    await loadQuestionBank();
+    const studentData = await getStudentResponse(docId);
+    showWrongAnswers(studentData);
+}
+
+/* ------------------------------------------------------
+   INITIAL LOAD
+------------------------------------------------------ */
+loadStudents();
 </script>
+
 </body>
 </html>
