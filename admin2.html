@@ -2,66 +2,902 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Student Wrong Questions</title>
+  <title>Admin – Final Exam Dashboard</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-8">
-  <h1 class="text-3xl font-bold mb-8 text-purple-600 flex items-center">
-    <span>📑 Student Wrong Questions</span>
+<body class="bg-gray-100 min-h-screen p-6">
+
+<!-- ========================= -->
+<!-- PASSWORD GATE (1230) -->
+<!-- ========================= -->
+<div id="passwordGate"
+     class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50">
+  <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center">
+
+    <h2 class="text-2xl font-bold text-purple-600 mb-4">Admin Access</h2>
+    <p class="text-gray-600 mb-6">Enter the admin password to continue.</p>
+
+    <input id="adminPass"
+           type="password"
+           class="w-full px-4 py-3 border rounded-lg text-center text-lg focus:ring-2 focus:ring-purple-500"
+           placeholder="Enter password">
+
+    <button onclick="checkAdminPassword()"
+            class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg mt-4">
+      Unlock
+    </button>
+
+    <p id="passError" class="text-red-500 font-semibold mt-3 hidden">
+      ❌ Incorrect password
+    </p>
+  </div>
+</div>
+
+<script>
+function checkAdminPassword() {
+  const input = document.getElementById("adminPass").value.trim();
+  if (input === "1230") {
+    document.getElementById("passwordGate").classList.add("hidden");
+  } else {
+    document.getElementById("passError").classList.remove("hidden");
+  }
+}
+</script>
+
+<!-- ========================= -->
+<!-- MAIN WRAPPER -->
+<!-- ========================= -->
+<div class="max-w-7xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-xl">
+
+  <h1 class="text-3xl md:text-4xl font-bold text-center text-purple-600 mb-6">
+    Admin – Final Exam Dashboard
   </h1>
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-    <!-- LEFT: Students -->
-    <div class="bg-white shadow-lg p-6 rounded-xl">
-      <h2 class="text-xl font-bold mb-4">Students</h2>
-      <table class="w-full text-left text-sm">
-        <thead>
-          <tr class="border-b">
-            <th class="py-2 px-2">Name</th>
-            <th>ID</th>
-            <th>Score</th>
-            <th>Time</th>
-          </tr>
-        </thead>
-        <tbody id="studentTableBody"></tbody>
-      </table>
+  <!-- Exam version / docId -->
+  <div class="flex flex-wrap items-center gap-3 mb-4 justify-between">
+    <div class="flex items-center gap-2">
+      <label class="font-semibold text-gray-700">Target exam version (docId):</label>
+      <input id="docIdInput"
+             class="border rounded-lg px-3 py-2"
+             value="current"
+             placeholder="e.g., current, test20, final2025">
     </div>
-
-    <!-- RIGHT: Wrong question list -->
-    <div class="bg-white shadow-lg p-6 rounded-xl md:col-span-2">
-      <h2 id="detailsTitle" class="text-xl font-bold mb-4">
-        Wrong questions
-      </h2>
-      <table class="w-full text-left text-sm">
-        <thead>
-          <tr class="border-b bg-gray-50">
-            <th class="py-2 px-2">#</th>
-            <th class="px-2">Question</th>
-            <th class="px-2">Correct Answer</th>
-            <th class="px-2">Selected Answer</th>
-          </tr>
-        </thead>
-        <tbody id="detailsTableBody"></tbody>
-      </table>
+    <div class="text-xs md:text-sm text-gray-500">
+      Question Bank: <span class="font-mono">exam_questions / [docId]</span><br>
+      Responses: <span class="font-mono">exam_responses / *</span>
     </div>
   </div>
 
+  <!-- TAB MENU -->
+  <div class="border-b mb-4 flex flex-wrap gap-2 text-sm">
+    <button class="tab-btn px-4 py-2 font-semibold border-b-2 border-purple-600 text-purple-700"
+            data-tab="uploadTab">Upload (CSV / JSON)</button>
+    <button class="tab-btn px-4 py-2 font-semibold text-gray-500"
+            data-tab="randomTab">Random Generator</button>
+    <button class="tab-btn px-4 py-2 font-semibold text-gray-500"
+            data-tab="templateTab">Template Loader</button>
+    <button class="tab-btn px-4 py-2 font-semibold text-gray-500"
+            data-tab="previewTab">Preview & Edit</button>
+    <button class="tab-btn px-4 py-2 font-semibold text-gray-500"
+            data-tab="firestoreTab">Firestore Upload</button>
+    <button class="tab-btn px-4 py-2 font-semibold text-gray-500"
+            data-tab="resultsTab">Student Results</button>
+    <button class="tab-btn px-4 py-2 font-semibold text-gray-500"
+            data-tab="wrongTab">Wrong Questions</button>
+  </div>
+
+  <!-- =============== -->
+  <!-- TAB: UPLOAD -->
+  <!-- =============== -->
+  <div id="uploadTab" class="tab-pane block">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- CSV Upload -->
+      <div class="border rounded-xl p-6 bg-gray-50">
+        <h2 class="text-xl font-bold mb-3 text-purple-700">Upload Questions via CSV</h2>
+        <p class="text-sm text-gray-600 mb-2">
+          Format: <span class="font-mono">id,question,opt1,opt2,opt3,opt4,answer,topic,level</span>
+        </p>
+        <input id="csvFile" type="file" accept=".csv"
+               class="w-full border p-3 rounded bg-white shadow-sm">
+        <button onclick="previewCSV()"
+                class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold">
+          Preview CSV
+        </button>
+      </div>
+
+      <!-- JSON Upload -->
+      <div class="border rounded-xl p-6 bg-gray-50">
+        <h2 class="text-xl font-bold mb-3 text-purple-700">Upload Questions via JSON</h2>
+        <p class="text-sm text-gray-600 mb-2">
+          Supported formats:
+        </p>
+        <ul class="text-xs text-gray-600 list-disc ml-5 mb-2">
+          <li><span class="font-mono">[{"id","text","options","answer"}, ...]</span></li>
+          <li><span class="font-mono">{"Low":[...], "Medium":[...], "High":[...]}</span></li>
+        </ul>
+        <input id="jsonFile" type="file" accept=".json"
+               class="w-full border p-3 rounded bg-white shadow-sm">
+        <button onclick="previewJSON()"
+                class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold">
+          Preview JSON
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== -->
+  <!-- TAB: RANDOM -->
+  <!-- =============== -->
+  <div id="randomTab" class="tab-pane hidden mt-4">
+    <div class="border rounded-xl p-6 bg-gray-50">
+      <h2 class="text-xl font-bold mb-4 text-purple-700">Random Question Generator</h2>
+
+      <div class="grid md:grid-cols-3 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-semibold mb-1">Topic</label>
+          <select id="topicSelect" class="w-full p-2 border rounded">
+            <option>Descriptive Statistics</option>
+            <option>Probability</option>
+            <option>Sampling & Sampling Distribution</option>
+            <option>Estimation (Confidence Interval)</option>
+            <option>Hypothesis Testing</option>
+            <option>Regression Basics</option>
+            <option>Practical Real-World Applications</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Difficulty</label>
+          <select id="levelSelect" class="w-full p-2 border rounded">
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Number of questions</label>
+          <input id="numQuestions" type="number" min="1" value="10"
+                 class="w-full p-2 border rounded">
+        </div>
+      </div>
+
+      <button onclick="generateRandomQuestions()"
+              class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-bold">
+        Generate & Add to Preview
+      </button>
+
+      <p class="text-xs text-gray-500 mt-3">
+        ※ 템플릿 풀 크기보다 많이 요청하면, 가능한 범위 내에서만 생성됩니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- =============== -->
+  <!-- TAB: TEMPLATE LOADER -->
+  <!-- =============== -->
+  <div id="templateTab" class="tab-pane hidden mt-4">
+    <div class="border rounded-xl p-6 bg-gray-50">
+      <h2 class="text-xl font-bold mb-4 text-purple-700">Load Topic Templates (JSON)</h2>
+      <p class="text-sm text-gray-600 mb-3">
+        /templates 폴더에 있는 주제별 JSON 파일을 Preview에 추가합니다.
+      </p>
+      <div class="grid md:grid-cols-3 gap-3">
+        <button onclick="loadTemplateJSON('descriptive.json','Descriptive Statistics')"
+                class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">descriptive.json</button>
+        <button onclick="loadTemplateJSON('probability.json','Probability')"
+                class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">probability.json</button>
+        <button onclick="loadTemplateJSON('sampling.json','Sampling & Sampling Distribution')"
+                class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">sampling.json</button>
+        <button onclick="loadTemplateJSON('estimation.json','Estimation (Confidence Interval)')"
+                class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">estimation.json</button>
+        <button onclick="loadTemplateJSON('hypothesis.json','Hypothesis Testing')"
+                class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">hypothesis.json</button>
+        <button onclick="loadTemplateJSON('regression.json','Regression Basics')"
+                class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm">regression.json</button>
+        <button onclick="loadTemplateJSON('practical.json','Practical Real-World Applications')"
+                class="bg-gray-800 hover:bg-gray-900 text-white py-2 rounded-lg text-sm md:col-span-3">practical.json</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== -->
+  <!-- TAB: PREVIEW & EDIT -->
+  <!-- =============== -->
+  <div id="previewTab" class="tab-pane hidden mt-4">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-xl font-bold text-gray-800">Preview & Inline Edit</h2>
+      <div class="flex gap-2">
+        <button onclick="addEmptyQuestion()"
+                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-semibold">
+          + Add Empty Question
+        </button>
+        <button onclick="clearPreview()"
+                class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-semibold">
+          Clear All
+        </button>
+      </div>
+    </div>
+    <div id="previewArea" class="border rounded-xl p-2 bg-gray-50 max-h-[600px] overflow-auto">
+      <p class="text-sm text-gray-500">No questions loaded yet.</p>
+    </div>
+  </div>
+
+  <!-- =============== -->
+  <!-- TAB: FIRESTORE UPLOAD -->
+  <!-- =============== -->
+  <div id="firestoreTab" class="tab-pane hidden mt-4">
+    <div class="border rounded-xl p-6 bg-gray-50">
+      <h2 class="text-xl font-bold text-purple-700 mb-4">Upload to Firestore</h2>
+      <p class="text-sm text-gray-700 mb-4">
+        현재 Preview에 있는 문항들을 Firestore에 저장합니다.<br>
+        저장 위치: <span class="font-mono">exam_questions / [docId]</span>
+      </p>
+      <div class="flex flex-col md:flex-row gap-3 mb-4">
+        <button onclick="uploadSelectedQuestions()"
+                class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-bold">
+          Upload Checked Questions Only
+        </button>
+        <button onclick="uploadAllQuestions()"
+                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold">
+          Upload ALL Questions in Preview
+        </button>
+      </div>
+      <p class="text-xs text-gray-500">
+        업로드 시, <span class="font-mono">exam_questions/versions/history/[timestamp]</span>에도 자동 백업되고,
+        backup JSON 파일이 자동 다운로드됩니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- =============== -->
+  <!-- TAB: STUDENT RESULTS -->
+  <!-- =============== -->
+  <div id="resultsTab" class="tab-pane hidden mt-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- LEFT: Student list -->
+      <div class="bg-gray-50 border rounded-xl p-4 h-full">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-lg font-bold text-gray-800">Students</h2>
+          <button onclick="loadStudentsResults()"
+                  class="text-xs bg-gray-800 text-white px-3 py-1 rounded">
+            Reload
+          </button>
+        </div>
+        <p class="text-xs text-gray-500 mb-2">
+          Filter by examDocId (optional):
+        </p>
+        <input id="resultsExamFilter" type="text"
+               class="w-full border rounded px-2 py-1 text-xs mb-2"
+               placeholder="e.g., current, test20 (blank = all)">
+        <table class="w-full text-left text-xs">
+          <thead>
+          <tr class="border-b bg-white">
+            <th class="py-1 px-2">Name</th>
+            <th>ID</th>
+            <th>Score</th>
+            <th>Exam</th>
+          </tr>
+          </thead>
+          <tbody id="studentTableBodyResults"></tbody>
+        </table>
+      </div>
+
+      <!-- RIGHT: Student full details -->
+      <div class="md:col-span-2 bg-gray-50 border rounded-xl p-4">
+        <h2 id="resultsDetailsTitle"
+            class="text-lg font-bold mb-3">
+          Student’s Test Details
+        </h2>
+        <div id="resultsDetailsPanel" class="border rounded-xl bg-white p-3 max-h-[540px] overflow-auto">
+          <p class="text-sm text-gray-500">
+            Select a student from the left to view all of their answers.
+          </p>
+          <table class="w-full text-left text-xs mt-2 hidden" id="resultsDetailsTable">
+            <thead>
+            <tr class="border-b bg-gray-50">
+              <th class="py-1 px-2">#</th>
+              <th class="px-2">Question</th>
+              <th class="px-2">Correct</th>
+              <th class="px-2">Selected</th>
+            </tr>
+            </thead>
+            <tbody id="resultsDetailsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== -->
+  <!-- TAB: WRONG QUESTIONS -->
+  <!-- =============== -->
+  <div id="wrongTab" class="tab-pane hidden mt-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- LEFT: Student list -->
+      <div class="bg-gray-50 border rounded-xl p-4 h-full">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-lg font-bold text-gray-800">Students</h2>
+          <button onclick="loadStudentsWrong()"
+                  class="text-xs bg-gray-800 text-white px-3 py-1 rounded">
+            Reload
+          </button>
+        </div>
+        <p class="text-xs text-gray-500 mb-2">
+          Filter by examDocId (optional):
+        </p>
+        <input id="wrongExamFilter" type="text"
+               class="w-full border rounded px-2 py-1 text-xs mb-2"
+               placeholder="e.g., current, test20 (blank = all)">
+        <table class="w-full text-left text-xs">
+          <thead>
+          <tr class="border-b bg-white">
+            <th class="py-1 px-2">Name</th>
+            <th>ID</th>
+            <th>Score</th>
+            <th>Exam</th>
+          </tr>
+          </thead>
+          <tbody id="studentTableBodyWrong"></tbody>
+        </table>
+      </div>
+
+      <!-- RIGHT: Wrong questions -->
+      <div class="md:col-span-2 bg-gray-50 border rounded-xl p-4">
+        <h2 id="wrongDetailsTitle"
+            class="text-lg font-bold mb-3">
+          Wrong Questions
+        </h2>
+        <div id="wrongDetailsPanel" class="border rounded-xl bg-white p-3 max-h-[540px] overflow-auto">
+          <p class="text-sm text-gray-500">
+            Select a student from the left to see which questions they got wrong.
+          </p>
+          <table class="w-full text-left text-xs mt-2 hidden" id="wrongDetailsTable">
+            <thead>
+            <tr class="border-b bg-gray-50">
+              <th class="py-1 px-2">#</th>
+              <th class="px-2">Question</th>
+              <th class="px-2">Correct</th>
+              <th class="px-2">Selected</th>
+            </tr>
+            </thead>
+            <tbody id="wrongDetailsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p id="statusMsg" class="text-center mt-6 text-lg font-semibold"></p>
+</div>
+
+<!-- ========================= -->
+<!-- FIREBASE INIT -->
+<!-- ========================= -->
 <script>
-/* ---------------- Firebase ---------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
   authDomain: "sswt-final.firebaseapp.com",
-  projectId: "sswt-final"
+  projectId: "sswt-final",
+  storageBucket: "sswt-final.firebasestorage.app",
+  messagingSenderId: "824707188580",
+  appId: "1:824707188580:web:747ba4d91ab781e1a15c71"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+</script>
 
-/* ---------------- State ---------------- */
-let selectedRow = null;
+<!-- ========================= -->
+<!-- GLOBAL STATE -->
+<!-- ========================= -->
+<script>
+let previewData = []; // {id, question, opt1..4, answer, topic, level}
+let selectedRowResults = null;
+let selectedRowWrong = null;
+</script>
 
-/* ---------- Helpers ---------- */
+<!-- ========================= -->
+<!-- TABS LOGIC -->
+<!-- ========================= -->
+<script>
+const tabButtons = document.querySelectorAll(".tab-btn");
+const tabPanes = document.querySelectorAll(".tab-pane");
+
+tabButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const target = btn.dataset.tab;
+
+    tabButtons.forEach(b => {
+      b.classList.remove("border-purple-600","text-purple-700");
+      b.classList.add("text-gray-500");
+    });
+    btn.classList.add("border-purple-600","text-purple-700");
+    btn.classList.remove("text-gray-500");
+
+    tabPanes.forEach(p => p.classList.add("hidden"));
+    document.getElementById(target).classList.remove("hidden");
+  });
+});
+</script>
+
+<!-- ========================= -->
+<!-- CSV PARSE + PREVIEW -->
+<!-- ========================= -->
+<script>
+function parseCSV(text) {
+  const lines = text.trim().split("\n");
+  const headers = lines[0].split(",").map(h => h.trim());
+
+  return lines.slice(1).map(line => {
+    const cols = line.split(",").map(c => c.trim());
+    let obj = {};
+    headers.forEach((h,i) => obj[h] = cols[i]);
+    return obj;
+  });
+}
+
+function previewCSV() {
+  const file = document.getElementById("csvFile").files[0];
+  if (!file) {
+    alert("Select a CSV file first.");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const rows = parseCSV(e.target.result);
+    rows.forEach(r => {
+      previewData.push({
+        id: r.id || "",
+        question: r.question || "",
+        opt1: r.opt1 || "",
+        opt2: r.opt2 || "",
+        opt3: r.opt3 || "",
+        opt4: r.opt4 || "",
+        answer: r.answer ? parseInt(r.answer) : 0,
+        topic: r.topic || "",
+        level: r.level || ""
+      });
+    });
+    renderPreviewTable();
+    setStatus(`✅ Added ${rows.length} questions from CSV.`, true);
+  };
+  reader.readAsText(file);
+}
+</script>
+
+<!-- ========================= -->
+<!-- JSON PREVIEW -->
+<!-- ========================= -->
+<script>
+function previewJSON() {
+  const file = document.getElementById("jsonFile").files[0];
+  if (!file) {
+    alert("Select a JSON file first.");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+
+      if (Array.isArray(data)) {
+        data.forEach((q, idx) => {
+          previewData.push({
+            id: q.id || `J${previewData.length + idx + 1}`,
+            question: q.text || q.question || "",
+            opt1: q.options ? (q.options[0] || "") : (q.opt1 || ""),
+            opt2: q.options ? (q.options[1] || "") : (q.opt2 || ""),
+            opt3: q.options ? (q.options[2] || "") : (q.opt3 || ""),
+            opt4: q.options ? (q.options[3] || "") : (q.opt4 || ""),
+            answer: typeof q.answer === "number" ? q.answer : parseInt(q.answer || 0),
+            topic: q.topic || "",
+            level: q.level || ""
+          });
+        });
+      } else if (data.Low || data.Medium || data.High) {
+        ["Low","Medium","High"].forEach(level => {
+          if (Array.isArray(data[level])) {
+            data[level].forEach((q, idx) => {
+              previewData.push({
+                id: q.id || `J${previewData.length + idx + 1}`,
+                question: q.q || q.text || q.question || "",
+                opt1: q.opts ? (q.opts[0] || "") : (q.options ? q.options[0] : ""),
+                opt2: q.opts ? (q.opts[1] || "") : (q.options ? q.options[1] : ""),
+                opt3: q.opts ? (q.opts[2] || "") : (q.options ? q.options[2] : ""),
+                opt4: q.opts ? (q.opts[3] || "") : (q.options ? q.options[3] : ""),
+                answer: typeof q.ans === "number" ? q.ans : parseInt(q.answer || 0),
+                topic: "",
+                level: level
+              });
+            });
+          }
+        });
+      } else {
+        alert("Unsupported JSON structure.");
+        return;
+      }
+
+      renderPreviewTable();
+      setStatus("✅ JSON questions loaded into preview.", true);
+    } catch(err) {
+      console.error(err);
+      alert("Invalid JSON file.");
+    }
+  };
+  reader.readAsText(file);
+}
+</script>
+
+<!-- ========================= -->
+<!-- TEMPLATE LOADER -->
+<!-- ========================= -->
+<script>
+async function loadTemplateJSON(filename, topicLabel) {
+  try {
+    const res = await fetch(`templates/${filename}`);
+    if (!res.ok) {
+      alert(`Cannot load ${filename}. Check path.`);
+      return;
+    }
+    const data = await res.json();
+    let added = 0;
+    ["Low","Medium","High"].forEach(level => {
+      if (Array.isArray(data[level])) {
+        data[level].forEach(q => {
+          previewData.push({
+            id: q.id || `T${previewData.length + 1}`,
+            question: q.q || q.text || q.question || "",
+            opt1: q.opts ? (q.opts[0] || "") : (q.options ? q.options[0] : ""),
+            opt2: q.opts ? (q.opts[1] || "") : (q.options ? q.options[1] : ""),
+            opt3: q.opts ? (q.opts[2] || "") : (q.options ? q.options[2] : ""),
+            opt4: q.opts ? (q.opts[3] || "") : (q.options ? q.options[3] : ""),
+            answer: typeof q.ans === "number" ? q.ans : parseInt(q.answer || 0),
+            topic: topicLabel,
+            level: level
+          });
+          added++;
+        });
+      }
+    });
+    renderPreviewTable();
+    setStatus(`✅ Loaded ${added} questions from ${filename}.`, true);
+    document.querySelector('[data-tab="previewTab"]').click();
+  } catch(err) {
+    console.error(err);
+    alert("Failed to load template JSON.");
+  }
+}
+</script>
+
+<!-- ========================= -->
+<!-- RANDOM GENERATOR TEMPLATES -->
+<!-- ========================= -->
+<script>
+const templates = {
+  "Descriptive Statistics": {
+    Low: [
+      { q: "What does the mean represent?", opts: ["Average", "Median", "Mode", "Range"], ans: 0 },
+      { q: "Which is a measure of spread?", opts: ["Variance", "Mean", "Median", "Mode"], ans: 0 }
+    ],
+    Medium: [
+      { q: "Why is standard deviation useful?", opts: ["It measures variability", "It finds the median", "It reduces errors", "It increases sample size"], ans: 0 }
+    ],
+    High: [
+      { q: "Why is variance squared but SD not?", opts: ["Mathematical convenience", "No reason", "Just tradition", "To confuse students"], ans: 0 }
+    ]
+  },
+  "Probability": {
+    Low: [
+      { q: "Probability of a fair coin landing heads?", opts: ["1/2", "1/3", "1/4", "1"], ans: 0 }
+    ],
+    Medium: [
+      { q: "What is conditional probability?", opts: ["Probability given another event", "Always 1", "Always 0", "Independent event"], ans: 0 }
+    ],
+    High: [
+      { q: "Bayes’ theorem links:", opts: ["Prior and posterior", "Mean and variance", "CI and ME", "Slope and intercept"], ans: 0 }
+    ]
+  },
+  "Sampling & Sampling Distribution": {
+    Low: [
+      { q: "What is a sample?", opts: ["Subset of population", "Entire population", "Median", "Error"], ans: 0 }
+    ],
+    Medium: [
+      { q: "Sampling distribution is distribution of:", opts: ["Statistics", "Raw data", "Errors", "Residuals"], ans: 0 }
+    ],
+    High: [
+      { q: "Why is sampling distribution important?", opts: ["Basis of inference", "To draw histograms", "To reduce errors", "No reason"], ans: 0 }
+    ]
+  },
+  "Estimation (Confidence Interval)": {
+    Low: [
+      { q: "CI is used to estimate:", opts: ["Population parameter", "Sample mean only", "Variance only", "P-value"], ans: 0 }
+    ],
+    Medium: [
+      { q: "95% CI means:", opts: ["Interval capturing true parameter 95% of times", "95% of data inside", "Mean=95", "Variance small"], ans: 0 }
+    ],
+    High: [
+      { q: "CI width depends on:", opts: ["Variability & sample size", "Color of bars", "Test type only", "Nothing"], ans: 0 }
+    ]
+  },
+  "Hypothesis Testing": {
+    Low: [
+      { q: "Null hypothesis symbol is:", opts: ["H0", "H1", "CI", "σ²"], ans: 0 }
+    ],
+    Medium: [
+      { q: "Type I error is:", opts: ["Rejecting true null", "Failing to reject false null", "Wrong mean", "Sampling error"], ans: 0 }
+    ],
+    High: [
+      { q: "Test power is:", opts: ["1 - Type II error", "1 - Type I error", "Variance", "Std. error"], ans: 0 }
+    ]
+  },
+  "Regression Basics": {
+    Low: [
+      { q: "Regression predicts:", opts: ["Outcome variable", "Sample size", "Variance", "Errors"], ans: 0 }
+    ],
+    Medium: [
+      { q: "Slope represents:", opts: ["Rate of change", "Mean", "Median", "CI"], ans: 0 }
+    ],
+    High: [
+      { q: "R² is used to:", opts: ["Explain variability", "Compute p-value", "Compute n", "Fix errors"], ans: 0 }
+    ]
+  },
+  "Practical Real-World Applications": {
+    Low: [
+      { q: "Which field uses statistics?", opts: ["Business", "None", "Only math", "Only art"], ans: 0 }
+    ],
+    Medium: [
+      { q: "A/B testing is used to:", opts: ["Compare two strategies", "Find variance", "Run regression", "Estimate median"], ans: 0 }
+    ],
+    High: [
+      { q: "Predictive analytics helps by:", opts: ["Forecasting outcomes", "Removing all errors", "Making variance 0", "Eliminating sampling"], ans: 0 }
+    ]
+  }
+};
+
+function generateRandomQuestions() {
+  const topic = document.getElementById("topicSelect").value;
+  const level = document.getElementById("levelSelect").value;
+  const num = parseInt(document.getElementById("numQuestions").value) || 10;
+
+  const pool = templates[topic] && templates[topic][level];
+  if (!pool || pool.length === 0) {
+    alert("No templates for this topic/level.");
+    return;
+  }
+
+  let uniqueUsed = new Set(previewData.map(q => q.question.toLowerCase()));
+  let generated = [];
+  let tries = 0;
+
+  while (generated.length < num && tries < num * 10) {
+    const item = pool[Math.floor(Math.random() * pool.length)];
+    const key = item.q.toLowerCase();
+    if (!uniqueUsed.has(key)) {
+      uniqueUsed.add(key);
+      generated.push({
+        id: `R${previewData.length + generated.length + 1}`,
+        question: item.q,
+        opt1: item.opts[0],
+        opt2: item.opts[1],
+        opt3: item.opts[2],
+        opt4: item.opts[3],
+        answer: item.ans,
+        topic: topic,
+        level: level
+      });
+    }
+    tries++;
+  }
+
+  if (!generated.length) {
+    alert("No new unique questions could be generated (pool too small).");
+    return;
+  }
+
+  previewData = previewData.concat(generated);
+  renderPreviewTable();
+  setStatus(`✨ Generated ${generated.length} questions for ${topic} (${level}).`, false);
+  document.querySelector('[data-tab="previewTab"]').click();
+}
+</script>
+
+<!-- ========================= -->
+<!-- PREVIEW TABLE & EDIT -->
+<!-- ========================= -->
+<script>
+function renderPreviewTable() {
+  const container = document.getElementById("previewArea");
+  if (!previewData.length) {
+    container.innerHTML = `<p class="text-sm text-gray-500">No questions loaded yet.</p>`;
+    return;
+  }
+  let html = `
+    <table class="min-w-full border text-xs md:text-sm">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="border px-2 py-1">Use</th>
+          <th class="border px-2 py-1">#</th>
+          <th class="border px-2 py-1">ID</th>
+          <th class="border px-2 py-1">Topic</th>
+          <th class="border px-2 py-1">Level</th>
+          <th class="border px-2 py-1 w-[30%]">Question</th>
+          <th class="border px-2 py-1">Opt1</th>
+          <th class="border px-2 py-1">Opt2</th>
+          <th class="border px-2 py-1">Opt3</th>
+          <th class="border px-2 py-1">Opt4</th>
+          <th class="border px-2 py-1">Ans(0-3)</th>
+          <th class="border px-2 py-1">Del</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  previewData.forEach((q, idx) => {
+    html += `
+      <tr class="bg-white">
+        <td class="border px-1 py-1 text-center">
+          <input type="checkbox" class="select-q" data-index="${idx}" checked>
+        </td>
+        <td class="border px-1 py-1 text-center">${idx + 1}</td>
+        <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="id">${q.id || ""}</td>
+        <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="topic">${q.topic || ""}</td>
+        <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="level">${q.level || ""}</td>
+        <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="question">${q.question || ""}</td>
+        <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="opt1">${q.opt1 || ""}</td>
+        <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="opt2">${q.opt2 || ""}</td>
+        <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="opt3">${q.opt3 || ""}</td>
+        <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="opt4">${q.opt4 || ""}</td>
+        <td class="border px-1 py-1" contenteditable="true" data-index="${idx}" data-field="answer">${q.answer ?? 0}</td>
+        <td class="border px-1 py-1 text-center">
+          <button class="text-red-600 font-bold text-xs" onclick="deleteQuestion(${idx})">X</button>
+        </td>
+      </tr>
+    `;
+  });
+  html += `</tbody></table>`;
+  container.innerHTML = html;
+}
+
+// inline edit
+document.getElementById("previewArea").addEventListener("blur", function(e){
+  const target = e.target;
+  const idx = target.getAttribute("data-index");
+  const field = target.getAttribute("data-field");
+  if (idx === null || field === null) return;
+  const value = target.textContent.trim();
+  if (!previewData[idx]) return;
+  if (field === "answer") {
+    let num = parseInt(value);
+    if (isNaN(num) || num < 0 || num > 3) num = 0;
+    previewData[idx][field] = num;
+    target.textContent = num;
+  } else {
+    previewData[idx][field] = value;
+  }
+}, true);
+
+function deleteQuestion(index) {
+  if (!confirm("Delete this question?")) return;
+  previewData.splice(index,1);
+  renderPreviewTable();
+}
+
+function addEmptyQuestion() {
+  previewData.push({
+    id: `Q${previewData.length + 1}`,
+    question: "",
+    opt1: "", opt2: "", opt3: "", opt4: "",
+    answer: 0,
+    topic: "", level: ""
+  });
+  renderPreviewTable();
+}
+
+function clearPreview() {
+  if (!confirm("Clear ALL questions in preview?")) return;
+  previewData = [];
+  renderPreviewTable();
+}
+
+function setStatus(msg, ok) {
+  const el = document.getElementById("statusMsg");
+  el.textContent = msg;
+  el.className = ok
+    ? "text-green-600 text-center text-lg font-semibold"
+    : "text-blue-600 text-center text-lg font-semibold";
+}
+</script>
+
+<!-- ========================= -->
+<!-- FIRESTORE UPLOAD -->
+<!-- ========================= -->
+<script>
+async function uploadSelectedQuestions() {
+  if (!previewData.length) {
+    alert("No questions loaded.");
+    return;
+  }
+  const selected = [];
+  document.querySelectorAll(".select-q").forEach(cb => {
+    if (cb.checked) {
+      const idx = parseInt(cb.dataset.index);
+      selected.push(previewData[idx]);
+    }
+  });
+  if (!selected.length) {
+    alert("No questions selected.");
+    return;
+  }
+  await saveQuestionsToFirestore(selected);
+}
+
+async function uploadAllQuestions() {
+  if (!previewData.length) {
+    alert("No questions loaded.");
+    return;
+  }
+  await saveQuestionsToFirestore(previewData);
+}
+
+async function saveQuestionsToFirestore(list) {
+  const docId = document.getElementById("docIdInput").value.trim() || "current";
+  const questions = list.map(q => ({
+    id: q.id || "",
+    text: q.question || "",
+    options: [q.opt1 || "", q.opt2 || "", q.opt3 || "", q.opt4 || ""],
+    answer: typeof q.answer === "number" ? q.answer : parseInt(q.answer || 0),
+    topic: q.topic || "",
+    level: q.level || ""
+  }));
+
+  const count = questions.length;
+  const versionKey = new Date().toISOString().replace(/[-:T.Z]/g, "").slice(0,14);
+
+  try {
+    await db.collection("exam_questions").doc(docId).set({
+      questions,
+      count,
+      updatedAt: new Date().toISOString()
+    });
+
+    await db.collection("exam_questions")
+            .doc("versions")
+            .collection("history")
+            .doc(`${docId}_${versionKey}`)
+            .set({
+              docId,
+              questions,
+              count,
+              savedAt: new Date().toISOString()
+            });
+
+    downloadBackupJSON(questions, docId, versionKey);
+    setStatus(`✅ Uploaded ${count} questions to ${docId}. Version ${docId}_${versionKey} saved.`, true);
+  } catch(err) {
+    console.error(err);
+    alert("Upload failed.");
+  }
+}
+
+function downloadBackupJSON(questions, docId, versionKey) {
+  const blob = new Blob([JSON.stringify(questions,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `backup_${docId}_${versionKey}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+
+<!-- ========================= -->
+<!-- COMMON HELPERS FOR RESULTS -->
+<!-- ========================= -->
+<script>
 function normalizeQuestion(q, idx) {
   const options = q.options && q.options.length === 4
     ? q.options
@@ -79,48 +915,54 @@ function getAnswerText(q, idx) {
   if (idx == null || idx < 0 || !q.options || !q.options[idx]) return "(no answer)";
   return q.options[idx];
 }
+</script>
 
-/* ---------- Load students list ---------- */
-async function loadStudents() {
-  const snap = await db.collection("exam_responses")
-                       .orderBy("createdAt", "desc")
-                       .get();
+<!-- ========================= -->
+<!-- STUDENT RESULTS TAB -->
+<!-- ========================= -->
+<script>
+async function loadStudentsResults() {
+  const filter = document.getElementById("resultsExamFilter").value.trim();
+  let query = db.collection("exam_responses").orderBy("createdAt","desc");
+  // Firestore에서 where + orderBy 조합 제약이 있을 수 있으므로, 간단히 client-side filter
+  const snap = await query.get();
 
-  const tbody = document.getElementById("studentTableBody");
+  const tbody = document.getElementById("studentTableBodyResults");
   tbody.innerHTML = "";
+  selectedRowResults = null;
 
   snap.forEach(doc => {
     const d = doc.data();
+    if (filter && d.examDocId && d.examDocId !== filter) return;
+
     const tr = document.createElement("tr");
     tr.className = "border-b hover:bg-purple-50 cursor-pointer transition";
-    tr.onclick = () => onStudentClick(tr, doc.id);
+    tr.onclick = () => onStudentClickResults(tr, doc.id);
 
     tr.innerHTML = `
-      <td class="py-2 px-2">${d.studentName ?? "(no name)"}</td>
+      <td class="py-1 px-2">${d.studentName ?? "(no name)"}</td>
       <td>${d.studentId ?? ""}</td>
       <td>${d.score ?? ""}</td>
-      <td>${(d.timeUsedSeconds ?? 0)}s</td>
+      <td>${d.examDocId ?? ""}</td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-/* ---------- When student row clicked ---------- */
-async function onStudentClick(row, docId) {
-  if (selectedRow) {
-    selectedRow.classList.remove("bg-purple-100","border-l-4","border-purple-600");
+async function onStudentClickResults(row, docId) {
+  if (selectedRowResults) {
+    selectedRowResults.classList.remove("bg-purple-100","border-l-4","border-purple-600");
   }
   row.classList.add("bg-purple-100","border-l-4","border-purple-600");
-  selectedRow = row;
+  selectedRowResults = row;
 
-  const snap = await db.collection("exam_responses").doc(docId).get();
-  const d = snap.data();
+  const doc = await db.collection("exam_responses").doc(docId).get();
+  const d = doc.data();
   if (!d) return;
 
-  // 1) 응시 문서에 저장된 questions 우선 사용
+  // questions 우선
   let qArr = Array.isArray(d.questions) ? d.questions : [];
-
-  // 2) 없으면 exam_questions/{examDocId} 에서 로드 (레거시 호환)
+  // 없으면 exam_questions / examDocId
   if (!qArr.length && d.examDocId) {
     const bankDoc = await db.collection("exam_questions").doc(d.examDocId).get();
     if (bankDoc.exists) {
@@ -128,33 +970,120 @@ async function onStudentClick(row, docId) {
       qArr = Array.isArray(raw) ? raw : Object.values(raw);
     }
   }
-
   const questions = qArr.map(normalizeQuestion);
   const answers = Array.isArray(d.answers) ? d.answers : [];
-
-  const tbody = document.getElementById("detailsTableBody");
+  const tbody = document.getElementById("resultsDetailsBody");
+  const table = document.getElementById("resultsDetailsTable");
   tbody.innerHTML = "";
+  table.classList.remove("hidden");
 
-  let wrongCount = 0;
+  let correct = 0;
+  const total = questions.length;
 
   questions.forEach((q, idx) => {
-    // index 기반(A 방식)으로 우선 찾고, 필요하면 qId 매칭
     let a = answers.find(x => x.index === idx);
     if (!a && q.id) a = answers.find(x => x.qId === q.id);
 
     const selIdx = a ? a.selected : null;
     const isCorrect = (selIdx === q.answer);
+    if (isCorrect) correct++;
 
-    if (isCorrect) return;   // 맞은 문제는 표시하지 않음
-
-    wrongCount++;
-
-    const correctText  = getAnswerText(q, q.answer);
+    const correctText = getAnswerText(q, q.answer);
     const selectedText = getAnswerText(q, selIdx);
 
     tbody.insertAdjacentHTML("beforeend", `
       <tr class="border-b">
-        <td class="py-2 px-2">${idx + 1}</td>
+        <td class="py-1 px-2">${idx + 1}</td>
+        <td class="px-2">${q.text}</td>
+        <td class="px-2 font-semibold text-green-600">${correctText}</td>
+        <td class="px-2 font-semibold ${isCorrect ? "text-green-600" : "text-red-600"}">
+          ${selectedText}
+        </td>
+      </tr>
+    `);
+  });
+
+  document.getElementById("resultsDetailsTitle").textContent =
+    `Student’s Test Details (${correct} / ${total || 0}) – ${d.studentName ?? ""} (${d.studentId ?? ""})`;
+}
+</script>
+
+<!-- ========================= -->
+<!-- WRONG QUESTIONS TAB -->
+<!-- ========================= -->
+<script>
+async function loadStudentsWrong() {
+  const filter = document.getElementById("wrongExamFilter").value.trim();
+  let query = db.collection("exam_responses").orderBy("createdAt","desc");
+  const snap = await query.get();
+
+  const tbody = document.getElementById("studentTableBodyWrong");
+  tbody.innerHTML = "";
+  selectedRowWrong = null;
+
+  snap.forEach(doc => {
+    const d = doc.data();
+    if (filter && d.examDocId && d.examDocId !== filter) return;
+
+    const tr = document.createElement("tr");
+    tr.className = "border-b hover:bg-purple-50 cursor-pointer transition";
+    tr.onclick = () => onStudentClickWrong(tr, doc.id);
+
+    tr.innerHTML = `
+      <td class="py-1 px-2">${d.studentName ?? "(no name)"}</td>
+      <td>${d.studentId ?? ""}</td>
+      <td>${d.score ?? ""}</td>
+      <td>${d.examDocId ?? ""}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function onStudentClickWrong(row, docId) {
+  if (selectedRowWrong) {
+    selectedRowWrong.classList.remove("bg-purple-100","border-l-4","border-purple-600");
+  }
+  row.classList.add("bg-purple-100","border-l-4","border-purple-600");
+  selectedRowWrong = row;
+
+  const snap = await db.collection("exam_responses").doc(docId).get();
+  const d = snap.data();
+  if (!d) return;
+
+  let qArr = Array.isArray(d.questions) ? d.questions : [];
+  if (!qArr.length && d.examDocId) {
+    const bankDoc = await db.collection("exam_questions").doc(d.examDocId).get();
+    if (bankDoc.exists) {
+      const raw = bankDoc.data().questions || [];
+      qArr = Array.isArray(raw) ? raw : Object.values(raw);
+    }
+  }
+  const questions = qArr.map(normalizeQuestion);
+  const answers = Array.isArray(d.answers) ? d.answers : [];
+
+  const tbody = document.getElementById("wrongDetailsBody");
+  const table = document.getElementById("wrongDetailsTable");
+  tbody.innerHTML = "";
+  table.classList.remove("hidden");
+
+  let wrongCount = 0;
+
+  questions.forEach((q, idx) => {
+    let a = answers.find(x => x.index === idx);
+    if (!a && q.id) a = answers.find(x => x.qId === q.id);
+
+    const selIdx = a ? a.selected : null;
+    const isCorrect = (selIdx === q.answer);
+    if (isCorrect) return;
+
+    wrongCount++;
+
+    const correctText = getAnswerText(q, q.answer);
+    const selectedText = getAnswerText(q, selIdx);
+
+    tbody.insertAdjacentHTML("beforeend", `
+      <tr class="border-b">
+        <td class="py-1 px-2">${idx + 1}</td>
         <td class="px-2">${q.text}</td>
         <td class="px-2 font-semibold text-green-600">${correctText}</td>
         <td class="px-2 font-semibold text-red-600">${selectedText}</td>
@@ -162,13 +1091,20 @@ async function onStudentClick(row, docId) {
     `);
   });
 
-  const sid = d.studentId ?? "";
-  document.getElementById("detailsTitle").textContent =
-    `Wrong questions – ${sid} (${wrongCount})`;
+  document.getElementById("wrongDetailsTitle").textContent =
+    `Wrong Questions – ${d.studentId ?? ""} (${wrongCount})`;
 }
-
-/* ---------- Init ---------- */
-loadStudents();
 </script>
+
+<!-- ========================= -->
+<!-- INITIAL LOAD -->
+<!-- ========================= -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // 처음 들어가면 Preview 탭은 비어 있고,
+  // 결과/오답 탭에서 Reload 버튼 눌러 로딩.
+});
+</script>
+
 </body>
 </html>
