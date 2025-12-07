@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <title>Student Exam Results</title>
+
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
+
 </head>
 
 <body class="bg-gray-100 p-10">
 
-<h1 class="text-3xl font-bold mb-8 text-purple-600 flex items-center">
-    <span>📊 Student Exam Results</span>
-</h1>
+<h1 class="text-3xl font-bold mb-8 text-purple-600">📊 Student Exam Results</h1>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
 
@@ -35,7 +35,9 @@
 
 <!-- ========== RIGHT: SELECTED STUDENT DETAILS ========== -->
 <div class="bg-white shadow-lg p-6 rounded-xl md:col-span-2">
-    <h2 id="detailsTitle" class="text-xl font-bold mb-4">Student’s Test Details</h2>
+    <h2 id="detailsTitle" class="text-xl font-bold mb-4">
+        Student’s Test Details
+    </h2>
 
     <table class="w-full text-left text-sm">
         <thead>
@@ -57,56 +59,36 @@
    FIREBASE INIT
 ------------------------------------------------------ */
 const firebaseConfig = {
-    apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
-    authDomain: "sswt-final.firebaseapp.com",
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_DOMAIN",
     projectId: "sswt-final"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 let selectedRow = null;
-let questionBank = [];
 
 /* ------------------------------------------------------
-   LOAD QUESTION BANK FOR SPECIFIC EXAM VERSION
------------------------------------------------------- */
-async function loadQuestionBank(examVersion) {
-
-    const snap = await db.collection("exam_questions").doc(examVersion).get();
-    const data = snap.data();
-    if (!data || !data.questions) {
-        console.error("❌ No questions found for exam:", examVersion);
-        return [];
-    }
-
-    return data.questions.map(q => ({
-        qId: q.id,
-        text: q.question,
-        options: q.options ?? [q.opt1, q.opt2, q.opt3, q.opt4],
-        correct: q.answer
-    }));
-}
-
-/* ------------------------------------------------------
-   LOAD STUDENTS LIST
+   LOAD STUDENT LIST
 ------------------------------------------------------ */
 async function loadStudents() {
-    const snap = await db.collection("exam_responses").get();
+    const snap = await db.collection("exam_responses").orderBy("createdAt").get();
     const table = document.getElementById("studentTableBody");
+
     table.innerHTML = "";
 
     snap.forEach(doc => {
         const d = doc.data();
-        const tr = document.createElement("tr");
 
+        const tr = document.createElement("tr");
         tr.className = "border-b hover:bg-purple-50 cursor-pointer transition";
         tr.onclick = () => onStudentClick(tr, doc.id);
 
         tr.innerHTML = `
             <td class="py-2 px-2">${d.studentName ?? "(no name)"}</td>
-            <td>${d.studentId}</td>
-            <td>${d.score}</td>
-            <td>${d.timeUsedSeconds}s</td>
+            <td>${d.studentId ?? ""}</td>
+            <td>${d.score ?? "-"}</td>
+            <td>${d.timeUsedSeconds ?? "-"}s</td>
         `;
 
         table.appendChild(tr);
@@ -114,7 +96,7 @@ async function loadStudents() {
 }
 
 /* ------------------------------------------------------
-   LOAD A SINGLE STUDENT RESPONSE
+   LOAD SINGLE STUDENT RESPONSE
 ------------------------------------------------------ */
 async function getStudentResponse(docId) {
     const doc = await db.collection("exam_responses").doc(docId).get();
@@ -122,18 +104,21 @@ async function getStudentResponse(docId) {
 }
 
 /* ------------------------------------------------------
-   SHOW ALL QUESTIONS + MARK CORRECT/WRONG
+   RENDER STUDENT DETAILS (A 방식 전용)
 ------------------------------------------------------ */
-function showStudentDetails(studentData, questionBank) {
+function showStudentDetails(studentData) {
 
     const tbody = document.getElementById("detailsTableBody");
     tbody.innerHTML = "";
 
-    let correctCount = 0;
-    const totalQuestions = studentData.answers.length;
+    const questions = studentData.questions;       // ⭐ 학생이 실제 본 문제셋
+    const answers = studentData.answers;           // ⭐ index + selected structure
 
-    studentData.answers.forEach((ans, idx) => {
-        const q = questionBank.find(q => q.qId === ans.qId);
+    let correctCount = 0;
+
+    answers.forEach((ans, idx) => {
+
+        const q = questions[ans.index];       // ⭐ index 기반 매칭
         if (!q) return;
 
         const correctAns = q.options[q.correct];
@@ -143,45 +128,45 @@ function showStudentDetails(studentData, questionBank) {
         const isCorrect = ans.selected === q.correct;
         if (isCorrect) correctCount++;
 
-        tbody.insertAdjacentHTML(
-            "beforeend",
-            `
+        tbody.insertAdjacentHTML("beforeend", `
             <tr class="border-b">
                 <td class="py-2 px-2">${idx + 1}</td>
                 <td class="px-2">${q.text}</td>
+
                 <td class="px-2 font-semibold text-green-600">${correctAns}</td>
+
                 <td class="px-2 font-semibold ${isCorrect ? "text-green-600" : "text-red-600"}">
                     ${selectedAns}
                 </td>
-            </tr>`
-        );
+            </tr>
+        `);
     });
 
+    // Title update with score
     document.getElementById("detailsTitle").textContent =
-        `Student’s Test Details (${correctCount} / ${totalQuestions})`;
+        `Student’s Test Details (${correctCount} / ${answers.length})`;
 }
 
 /* ------------------------------------------------------
-   WHEN A STUDENT IS CLICKED
+   WHEN STUDENT IS CLICKED
 ------------------------------------------------------ */
 async function onStudentClick(row, docId) {
 
     // highlight selected row
-    if (selectedRow) selectedRow.classList.remove("bg-purple-100", "border-l-4", "border-purple-600");
+    if (selectedRow)
+        selectedRow.classList.remove("bg-purple-100", "border-l-4", "border-purple-600");
+
     row.classList.add("bg-purple-100", "border-l-4", "border-purple-600");
     selectedRow = row;
 
-    // load student record
     const studentData = await getStudentResponse(docId);
 
-    // find exam version (ex: current, test10, final2025)
-    const examVersion = studentData.examDocId || "current";
+    if (!studentData.questions || !studentData.answers) {
+        alert("학생 데이터가 손상되었거나 구버전 구조입니다.");
+        return;
+    }
 
-    // load the correct question bank for that exam
-    questionBank = await loadQuestionBank(examVersion);
-
-    // show full details
-    showStudentDetails(studentData, questionBank);
+    showStudentDetails(studentData);
 }
 
 /* ------------------------------------------------------
