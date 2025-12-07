@@ -358,29 +358,53 @@
             tbody.innerHTML = '<tr><td colspan="5" class="loading">데이터를 불러오는 중...</td></tr>';
 
             try {
+                // exam_responses 가져오기
                 const snapshot = await db.collection('exam_responses').get();
                 allData = [];
                 const examSet = new Set();
 
-                snapshot.forEach(doc => {
+                snapshot.forEach((doc, index) => {
                     const data = doc.data();
+                    
+                    // 첫 번째 데이터의 구조를 로그로 출력
+                    if(index === 0) {
+                        console.log('📊 첫 번째 데이터 구조:', data);
+                        console.log('📋 사용 가능한 필드:', Object.keys(data));
+                        addLog(`📋 데이터 필드: ${Object.keys(data).join(', ')}`);
+                    }
+                    
                     allData.push({
                         id: doc.id,
                         ...data
                     });
-                    if(data.examId) examSet.add(data.examId);
+                    
+                    // examId 또는 exam_id 또는 문서 ID 자체를 시험 ID로 사용
+                    const examIdentifier = data.examId || data.exam_id || data.examID || doc.id;
+                    if(examIdentifier) {
+                        examSet.add(examIdentifier);
+                        if(index === 0) {
+                            addLog(`🎯 시험 ID 필드: ${data.examId ? 'examId' : data.exam_id ? 'exam_id' : data.examID ? 'examID' : '문서 ID 사용'}`);
+                        }
+                    }
                 });
+
+                // exam_questions에서 시험 종류 수 가져오기
+                const examQuestionsSnapshot = await db.collection('exam_questions').get();
+                const totalExamTypes = examQuestionsSnapshot.size;
+                addLog(`📚 exam_questions에서 ${totalExamTypes}개의 시험 종류 발견`);
 
                 // 통계 업데이트
                 document.getElementById('totalResponses').textContent = allData.length;
-                document.getElementById('totalExams').textContent = examSet.size;
+                document.getElementById('totalExams').textContent = totalExamTypes;
                 document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ko-KR');
 
                 // 시험 필터 옵션 업데이트
                 const examFilter = document.getElementById('examFilter');
                 examFilter.innerHTML = '<option value="">모든 시험</option>';
-                examSet.forEach(examId => {
-                    examFilter.innerHTML += `<option value="${examId}">${examId}</option>`;
+                
+                // exam_questions의 문서 ID를 필터 옵션으로 추가
+                examQuestionsSnapshot.forEach(doc => {
+                    examFilter.innerHTML += `<option value="${doc.id}">${doc.id}</option>`;
                 });
 
                 filteredData = [...allData];
@@ -403,13 +427,18 @@
 
             tbody.innerHTML = data.map(item => {
                 const timestamp = item.timestamp ? new Date(item.timestamp).toLocaleString('ko-KR') : '-';
+                
+                // 다양한 필드명 지원
+                const studentId = item.studentId || item.student_id || item.studentID || item.id || '-';
+                const examId = item.examId || item.exam_id || item.examID || item.id || '-';
+                
                 const correctCount = item.correctAnswers ? 
                     Object.values(item.correctAnswers).filter(v => v === 0).length : '-';
 
                 return `
                     <tr>
-                        <td>${item.studentId || '-'}</td>
-                        <td>${item.examId || '-'}</td>
+                        <td>${studentId}</td>
+                        <td>${examId}</td>
                         <td>${timestamp}</td>
                         <td>${correctCount}</td>
                         <td>
@@ -428,11 +457,18 @@
 
             // 필터링
             filteredData = allData.filter(item => {
-                const matchSearch = !searchText || 
-                    (item.studentId && item.studentId.toLowerCase().includes(searchText)) ||
-                    (item.examId && item.examId.toLowerCase().includes(searchText));
+                const studentId = item.studentId || item.student_id || item.studentID || '';
+                const examId = item.examId || item.exam_id || item.examID || '';
                 
-                const matchExam = !examFilter || item.examId === examFilter;
+                const matchSearch = !searchText || 
+                    studentId.toLowerCase().includes(searchText) ||
+                    examId.toLowerCase().includes(searchText);
+                
+                const matchExam = !examFilter || 
+                    examId === examFilter || 
+                    (item.examId && item.examId === examFilter) ||
+                    (item.exam_id && item.exam_id === examFilter) ||
+                    (item.examID && item.examID === examFilter);
 
                 return matchSearch && matchExam;
             });
@@ -442,9 +478,13 @@
                 if(sortBy === 'timestamp') {
                     return (b.timestamp || 0) - (a.timestamp || 0);
                 } else if(sortBy === 'studentId') {
-                    return (a.studentId || '').localeCompare(b.studentId || '');
+                    const aId = a.studentId || a.student_id || a.studentID || '';
+                    const bId = b.studentId || b.student_id || b.studentID || '';
+                    return aId.localeCompare(bId);
                 } else if(sortBy === 'examId') {
-                    return (a.examId || '').localeCompare(b.examId || '');
+                    const aExam = a.examId || a.exam_id || a.examID || '';
+                    const bExam = b.examId || b.exam_id || b.examID || '';
+                    return aExam.localeCompare(bExam);
                 }
                 return 0;
             });
@@ -493,16 +533,16 @@
             }
         }
 
-        // 오래된 데이터 삭제 (7일 이상)
+        // 오래된 데이터 삭제 (30일 이상)
         async function deleteOldData() {
-            if(!confirm('7일 이상 된 데이터를 삭제하시겠습니까?')) return;
+            if(!confirm('30일 이상 된 데이터를 삭제하시겠습니까?')) return;
 
             addLog('🗑️ 오래된 데이터 삭제 중...');
-            const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
 
             try {
                 const snapshot = await db.collection('exam_responses')
-                    .where('timestamp', '<', sevenDaysAgo)
+                    .where('timestamp', '<', thirtyDaysAgo)
                     .get();
 
                 const deletePromises = [];
@@ -529,10 +569,12 @@
             
             filteredData.forEach(item => {
                 const timestamp = item.timestamp ? new Date(item.timestamp).toLocaleString('ko-KR') : '-';
+                const studentId = item.studentId || item.student_id || item.studentID || '-';
+                const examId = item.examId || item.exam_id || item.examID || '-';
                 const correctCount = item.correctAnswers ? 
                     Object.values(item.correctAnswers).filter(v => v === 0).length : '-';
                 
-                csv += `${item.studentId},${item.examId},${timestamp},${correctCount}\n`;
+                csv += `${studentId},${examId},${timestamp},${correctCount}\n`;
             });
 
             const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
