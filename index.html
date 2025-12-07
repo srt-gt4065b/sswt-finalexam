@@ -480,6 +480,19 @@
       studentName = nameInput.value.trim();
       studentId = idInput.value.trim();
 
+    // ========================
+    // Prevent duplicate student ID attempt
+    // ========================
+    const dupCheck = await db.collection("exam_responses")
+      .where("studentId", "==", studentId)
+      .where("examDocId", "==", EXAM_DOC_ID)
+      .get();
+
+    if (!dupCheck.empty) {
+      alert("❌ This student ID has already submitted the exam. Retake is not allowed.");
+      location.reload();
+      return;
+    }
       document.getElementById("instructionsModal").classList.add("hidden");
       document.getElementById("landingSection").classList.add("hidden");
       document.getElementById("examSection").classList.remove("hidden");
