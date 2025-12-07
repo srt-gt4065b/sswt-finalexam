@@ -1,191 +1,524 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Final Exam – Fall 2025 SSWT (Prof. HYOUNGTAE KIM)</title>
+  <meta charset="UTF-8" />
+  <title>Statistics with SW Tools - 2025 Fall Final Exam</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body {
+      background: #f3f4f6;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .no-select {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 p-10">
+<body class="min-h-screen flex items-center justify-center py-10">
 
-<!-- ================= HEADER ================= -->
-<h1 class="text-3xl font-bold text-purple-600 mb-6">Statistics Final – Fall 2025 SSWT (Prof. HYOUNGTAE KIM)</h1>
+<!-- ====================== -->
+<!-- Landing: 이름 / 학번 입력 -->
+<!-- ====================== -->
+<div id="landingSection" class="w-full max-w-xl bg-white shadow-xl rounded-2xl p-8 space-y-6">
+  <h1 class="text-2xl font-bold text-purple-600 mb-2 text-center">
+    Statistics with SW Tools - 2025 Fall Final Exam
+  </h1>
+  <p class="text-gray-600 text-sm text-center">
+    Please enter your information carefully. Your <span class="font-semibold">student ID</span> will be used for grading.
+  </p>
 
-<!-- LOGIN SCREEN -->
-<div id="loginScreen" class="bg-white p-6 shadow-lg rounded-xl w-96">
-    <h2 class="text-xl font-bold mb-4">Enter Student Info</h2>
+  <div class="space-y-4">
+    <div>
+      <label class="block text-gray-700 font-semibold mb-1">Name</label>
+      <input id="studentNameInput" type="text"
+             class="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+             placeholder="Your full name" />
+    </div>
 
-    <label>ID</label>
-    <input id="studentId" class="border p-2 w-full mb-3">
+    <div>
+      <label class="block text-gray-700 font-semibold mb-1">Student ID</label>
+      <input id="studentIdInput" type="text"
+             class="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+             placeholder="e.g., 20121039" />
+    </div>
 
-    <label>Name</label>
-    <input id="studentName" class="border p-2 w-full mb-3">
+    <div>
+      <label class="block text-gray-700 font-semibold mb-1">Confirm Student ID</label>
+      <input id="studentIdConfirm" type="text"
+             class="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+             placeholder="Re-enter your student ID" />
+      <p id="idMatchError" class="text-red-500 text-xs mt-1 hidden">
+        ❌ The two student IDs do not match. Please check again.
+      </p>
+    </div>
+  </div>
 
-    <button onclick="beginExam()"
-        class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
-        Start Exam
-    </button>
+  <button id="openInstructionsBtn"
+          class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl mt-3 disabled:opacity-40"
+          disabled>
+    Continue → Instructions
+  </button>
+
+  <p class="text-xs text-gray-500 text-center mt-2">
+    ※ Your student ID must be correct. Once submitted, it cannot be changed.
+  </p>
 </div>
 
-<!-- ================= EXAM AREA ================= -->
-<div id="examScreen" class="hidden">
+<!-- =============== -->
+<!-- Exam Section -->
+<!-- =============== -->
+<div id="examSection" class="hidden w-full max-w-5xl">
+  <div class="w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+    <!-- Header -->
+    <div class="px-8 py-5 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div>
+        <p id="headerStudent" class="font-bold text-lg text-gray-800"></p>
+        <p class="text-sm text-gray-500">
+          Statistics with SW Tools - 2025 Fall Final Exam
+        </p>
+      </div>
+      <div class="text-right">
+        <p class="text-xs uppercase tracking-wide text-gray-500">Time Remaining</p>
+        <p id="timerText" class="text-3xl font-extrabold text-purple-600">30:00</p>
+      </div>
+    </div>
 
-    <h2 class="text-xl font-bold mb-4 flex justify-between">
-        <span>Time Remaining:</span>
-        <span id="timeBox" class="text-red-600 font-mono text-2xl"></span>
+    <!-- Question body -->
+    <div class="px-8 py-6">
+      <p id="questionCounter" class="text-sm font-semibold text-gray-500 mb-4">
+        Question 1 of 100
+      </p>
+      <h2 id="questionText" class="no-select text-lg md:text-xl font-semibold text-gray-900 mb-6 min-h-[64px]">
+        <!-- question text -->
+      </h2>
+
+      <div id="optionsContainer" class="space-y-3">
+        <!-- options -->
+      </div>
+
+      <div class="flex justify-end mt-8">
+        <button id="nextBtn"
+                class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2.5 rounded-xl">
+          Next →
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =============== -->
+<!-- Result Section -->
+<!-- =============== -->
+<div id="resultSection" class="hidden w-full max-w-xl bg-white rounded-2xl shadow-xl p-8 text-center space-y-4">
+  <h2 class="text-2xl font-bold text-purple-600 mb-2">Exam Submitted</h2>
+  <p class="text-gray-700">
+    Thank you, <span id="resultName" class="font-semibold"></span> (<span id="resultId"></span>).
+  </p>
+  <p class="text-lg">
+    Your score: <span id="resultScore" class="font-bold text-purple-600"></span>
+    / <span id="resultTotal" class="font-semibold"></span>
+  </p>
+  <p class="text-sm text-gray-500">
+    Detailed grading will be announced later by the instructor.
+  </p>
+</div>
+
+<!-- ================= -->
+<!-- Instructions Modal -->
+<!-- ================= -->
+<div id="instructionsModal"
+     class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+  <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 max-h-[90vh] overflow-y-auto">
+    <h2 class="text-2xl font-bold text-purple-600 mb-4 text-center">
+      Final Exam Instructions
     </h2>
 
-    <div id="questionBox" class="bg-white p-6 shadow rounded-xl mb-6"></div>
+    <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700 mb-4">
+      <li>
+        This exam consists of <span class="font-semibold">100 multiple-choice questions</span>.
+      </li>
+      <li>
+        The <span class="font-semibold">total time limit is 30 minutes (1800 seconds)</span>.
+        This means you must solve all 100 questions within this time.
+        On average, you have <span class="font-semibold">about 18 seconds per question</span>.
+        If you spend too long on difficult or confusing questions, you may fail to reach later
+        questions that you actually know. For your best performance,
+        <span class="font-semibold">quickly guess and move on</span> when a question seems too time-consuming.
+      </li>
+      <li>
+        Once you move to the next question, you <span class="font-semibold">cannot go back</span>.
+        You can change your choice freely while on the same question, but previous questions
+        are locked once you press <span class="font-mono">Next</span>.
+      </li>
+      <li>
+        Do <span class="font-semibold">NOT</span> use AI tools, search engines, or help from others.
+        This exam is designed to evaluate your own understanding.
+      </li>
+      <li>
+        Any attempt to open another window, share questions, or copy text may be considered cheating.
+      </li>
+    </ol>
 
-    <button onclick="nextQuestion()"
-        class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
-        Next →
-    </button>
+    <div class="border rounded-xl p-3 bg-purple-50 text-xs text-gray-700 mb-4">
+      <p class="font-semibold text-purple-700 mb-1">Strategy Tip</p>
+      <p>
+        If you notice that you are spending more than 18 seconds on a single question,
+        consider making your best guess and moving on.
+        Solving many “easy and familiar” questions is usually better than spending
+        too much time on a single hard one.
+      </p>
+    </div>
+
+    <div class="space-y-2 mb-4 text-sm text-gray-700">
+      <label class="flex items-start gap-2">
+        <input id="agree1" type="checkbox" class="mt-1">
+        <span>I have carefully read and understood all instructions above.</span>
+      </label>
+      <label class="flex items-start gap-2">
+        <input id="agree2" type="checkbox" class="mt-1">
+        <span>I will not use AI tools or external help during this exam.</span>
+      </label>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-4">
+      <button id="closeInstructionsBtn"
+              class="px-4 py-2 rounded-xl border border-gray-300 text-sm">
+        Back
+      </button>
+      <button id="startExamBtn"
+              class="px-6 py-2 rounded-xl bg-purple-600 text-white font-semibold text-sm disabled:opacity-40"
+              disabled>
+        Start Exam
+      </button>
+    </div>
+  </div>
 </div>
 
 <script>
-/* --------------------------------------
-   FIREBASE INIT
--------------------------------------- */
-const firebaseConfig = {
-    piKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
+  // =====================
+  // Firebase Init
+  // =====================
+  const firebaseConfig = {
+    apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
     authDomain: "sswt-final.firebaseapp.com",
     projectId: "sswt-final",
     storageBucket: "sswt-final.firebasestorage.app",
     messagingSenderId: "824707188580",
     appId: "1:824707188580:web:747ba4d91ab781e1a15c71"
-};
-firebase.initializeApp(firebaseConfig);
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-const db = firebase.firestore();
+  // =====================
+  // Global State
+  // =====================
+  const EXAM_DOC_ID = "test5";          // ← 현재 test5 버전
+  const TOTAL_TIME_SECONDS = 150;       // ← 지금은 5분 테스트용 (원하면 1800으로 변경)
 
-/* --------------------------------------
-   TEST CONFIG
--------------------------------------- */
-const EXAM_DOC = "Fall 2025 SSWT (Prof. HYOUNGTAE KIM)";      // ← test5 시험버전
-let TOTAL_TIME = 600;           // 10분
-let questions = [];
-let studentQuestions = [];      // 학생이 실제 본 문제 전체 배열
-let answers = [];
-let current = 0;
-let timer = null;
+  let studentName = "";
+  let studentId = "";
+  let questions = [];                   // 학생에게 실제로 보여지는 문제 배열 (셔플 후)
+  let currentIndex = 0;
+  let answers = [];                     // 각 index별 선택한 보기 인덱스 (UI용)
+  let timerInterval = null;
+  let remainingSeconds = TOTAL_TIME_SECONDS;
+  let examStartedAt = null;
 
-/* --------------------------------------
-   LOAD test5 QUESTIONS
--------------------------------------- */
-async function loadQuestions() {
-    const doc = await db.collection("exam_questions").doc(EXAM_DOC).get();
-    const data = doc.data();
-
-    if (!data || !data.questions) {
-        alert("시험 문제를 불러올 수 없습니다.");
-        return;
+  // =====================
+  // Utility
+  // =====================
+  function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
+  }
 
-    questions = data.questions;
+  function shuffleOptions(q) {
+    if (!q.options || q.options.length !== 4) return;
+    const opts = q.options.map((text, idx) => ({ text, index: idx }));
+    for (let i = opts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [opts[i], opts[j]] = [opts[j], opts[i]];
+    }
+    q.options = opts.map(o => o.text);
+    q.answer = opts.findIndex(o => o.index === q.answer);
+  }
 
-    // ⭐ 학생 문제 배열을 그대로 저장
-    studentQuestions = [...questions];
-}
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, "0");
+    const s = (sec % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  }
 
-/* --------------------------------------
-   START EXAM
--------------------------------------- */
-async function beginExam() {
-    await loadQuestions();
+  // =====================
+  // Load Questions from Firestore
+  // =====================
+  async function loadQuestions(docId = EXAM_DOC_ID) {
+    try {
+      const snap = await db.collection("exam_questions").doc(docId).get();
+      if (!snap.exists) {
+        alert("Exam questions not found. Please contact your instructor.");
+        return false;
+      }
 
-    document.getElementById("loginScreen").classList.add("hidden");
-    document.getElementById("examScreen").classList.remove("hidden");
+      const data = snap.data();
+      let raw = data.questions || [];
+      let arr = Array.isArray(raw) ? raw : Object.values(raw);
 
-    startTimer();
-    renderQuestion();
-}
+      questions = arr.map((q, idx) => ({
+        id: q.id || `Q${idx + 1}`,
+        text: q.text || q.question || "",
+        options: q.options || [q.opt1, q.opt2, q.opt3, q.opt4],
+        answer: typeof q.answer === "number"
+          ? q.answer
+          : parseInt(q.answer || 0, 10),
+        topic: q.topic || "",
+        level: q.level || ""
+      })).filter(q => q.text && q.options && q.options[0] !== undefined);
 
-/* --------------------------------------
-   RENDER QUESTION
--------------------------------------- */
-function renderQuestion() {
-    const q = studentQuestions[current];
+      if (!questions.length) {
+        alert("No valid questions available.");
+        return false;
+      }
 
-    let html = `
-        <div class="text-lg font-bold mb-4">
-            Question ${current + 1} / ${studentQuestions.length}
-        </div>
-        <div class="mb-4">${q.text}</div>
-    `;
+      // Shuffle question order & options (학생별로 다른 순서)
+      shuffleArray(questions);
+      questions.forEach(q => shuffleOptions(q));
+
+      return true;
+    } catch (err) {
+      console.error("Error loading questions:", err);
+      alert("Failed to load exam questions.");
+      return false;
+    }
+  }
+
+  // =====================
+  // Render Question
+  // =====================
+  function showQuestion() {
+    const q = questions[currentIndex];
+    const total = questions.length;
+
+    document.getElementById("questionCounter").textContent =
+      `Question ${currentIndex + 1} of ${total}`;
+
+    document.getElementById("questionText").textContent = q.text;
+
+    const container = document.getElementById("optionsContainer");
+    container.innerHTML = "";
+
+    const selectedIndex = answers[currentIndex];
 
     q.options.forEach((opt, idx) => {
-        html += `
-            <label class="block mb-2">
-                <input type="radio" name="opt" value="${idx}">
-                ${opt}
-            </label>
-        `;
+      const id = `q${currentIndex}_opt${idx}`;
+
+      const wrapper = document.createElement("label");
+      wrapper.className =
+        "no-select flex items-center gap-3 w-full border rounded-xl px-4 py-3 cursor-pointer hover:bg-purple-50";
+
+      const radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = "option";
+      radio.value = idx;
+      radio.id = id;
+      radio.className = "h-4 w-4";
+      if (selectedIndex === idx) radio.checked = true;
+
+      radio.addEventListener("change", () => {
+        answers[currentIndex] = idx;
+      });
+
+      const span = document.createElement("span");
+      span.className = "text-sm md:text-base text-gray-800";
+      span.textContent = opt;
+
+      wrapper.appendChild(radio);
+      wrapper.appendChild(span);
+      container.appendChild(wrapper);
     });
 
-    document.getElementById("questionBox").innerHTML = html;
-}
+    const nextBtn = document.getElementById("nextBtn");
+    if (currentIndex === total - 1) {
+      nextBtn.textContent = "Submit Exam";
+    } else {
+      nextBtn.textContent = "Next →";
+    }
+  }
 
-/* --------------------------------------
-   NEXT QUESTION
--------------------------------------- */
-function nextQuestion() {
-    const selected = document.querySelector("input[name='opt']:checked");
+  // =====================
+  // Timer
+  // =====================
+  function startTimer() {
+    remainingSeconds = TOTAL_TIME_SECONDS;
+    document.getElementById("timerText").textContent = formatTime(remainingSeconds);
 
-    answers.push({
-        index: current,                     // ⭐ 문제 번호만 저장
-        selected: selected ? parseInt(selected.value) : null
-    });
-
-    current++;
-
-    if (current >= studentQuestions.length) {
-        finishExam();
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      remainingSeconds--;
+      if (remainingSeconds < 0) {
+        clearInterval(timerInterval);
+        finishExam(true);
         return;
+      }
+      document.getElementById("timerText").textContent = formatTime(remainingSeconds);
+    }, 1000);
+  }
+
+  // =====================
+  // Finish Exam & Save  (★ A 방식 구조 반영)
+  // =====================
+  async function finishExam(timeUp = false) {
+    if (timerInterval) clearInterval(timerInterval);
+
+    // 점수 계산 (로컬)
+    let correctCount = 0;
+
+    // admin_results.html이 기대하는 구조: { index, selected }
+    const detail = questions.map((q, idx) => {
+      const selected = answers[idx] !== undefined ? answers[idx] : null;
+      const isCorrect = selected === q.answer;
+      if (isCorrect) correctCount++;
+      return {
+        index: idx,
+        selected: selected
+      };
+    });
+
+    // 화면 전환
+    document.getElementById("examSection").classList.add("hidden");
+    document.getElementById("resultSection").classList.remove("hidden");
+
+    document.getElementById("resultName").textContent = studentName;
+    document.getElementById("resultId").textContent = studentId;
+    document.getElementById("resultScore").textContent = correctCount;
+    document.getElementById("resultTotal").textContent = questions.length;
+
+    // Firestore 기록
+    try {
+      await db.collection("exam_responses").add({
+        examDocId: EXAM_DOC_ID,
+        studentName,
+        studentId,
+        startedAt: examStartedAt,
+        finishedAt: new Date().toISOString(),
+        timeUsedSeconds: TOTAL_TIME_SECONDS - Math.max(remainingSeconds, 0),
+        score: correctCount,
+        totalQuestions: questions.length,
+        timeUp,
+        // ★ A 방식: 학생별 문제배열 + index기반 답 저장
+        questions: questions,   // 학생이 실제 본 문제 전체
+        answers: detail,        // [{index, selected}, ...]
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (err) {
+      console.error("Failed to save exam response:", err);
+    }
+  }
+
+  // =====================
+  // Event Wiring
+  // =====================
+  document.addEventListener("DOMContentLoaded", () => {
+    const nameInput = document.getElementById("studentNameInput");
+    const idInput = document.getElementById("studentIdInput");
+    const idConfirm = document.getElementById("studentIdConfirm");
+    const openInstructionsBtn = document.getElementById("openInstructionsBtn");
+    const idMatchError = document.getElementById("idMatchError");
+
+    function validateLanding() {
+      const name = nameInput.value.trim();
+      const id1 = idInput.value.trim();
+      const id2 = idConfirm.value.trim();
+
+      const basicOk = name.length > 0 && id1.length > 0 && id2.length > 0;
+      const same = id1 === id2;
+
+      if (!same && id1 && id2) {
+        idMatchError.classList.remove("hidden");
+      } else {
+        idMatchError.classList.add("hidden");
+      }
+      openInstructionsBtn.disabled = !(basicOk && same);
     }
 
-    renderQuestion();
-}
+    nameInput.addEventListener("input", validateLanding);
+    idInput.addEventListener("input", validateLanding);
+    idConfirm.addEventListener("input", validateLanding);
 
-/* --------------------------------------
-   TIMER
--------------------------------------- */
-function startTimer() {
-    timer = setInterval(() => {
-        TOTAL_TIME--;
-        document.getElementById("timeBox").textContent = TOTAL_TIME + "s";
-
-        if (TOTAL_TIME <= 0) finishExam();
-    }, 1000);
-}
-
-/* --------------------------------------
-   SUBMIT TO FIRESTORE (SAFE FORMAT)
--------------------------------------- */
-async function finishExam() {
-    clearInterval(timer);
-
-    const studentId = document.getElementById("studentId").value;
-    const studentName = document.getElementById("studentName").value;
-
-    await db.collection("exam_responses").add({
-        studentId,
-        studentName,
-        examDocId: EXAM_DOC,
-        answers,
-        questions: studentQuestions,     // ⭐ 학생이 실제 본 문제 전체 저장
-        score: null,                     // 채점은 admin_results에서 수행
-        timeUsedSeconds: (600 - TOTAL_TIME),
-        createdAt: new Date().toISOString()
+    openInstructionsBtn.addEventListener("click", () => {
+      document.getElementById("instructionsModal").classList.remove("hidden");
     });
 
-    alert("시험이 제출되었습니다!");
-    location.reload();
-}
-</script>
+    document.getElementById("closeInstructionsBtn").addEventListener("click", () => {
+      document.getElementById("instructionsModal").classList.add("hidden");
+    });
 
+    const agree1 = document.getElementById("agree1");
+    const agree2 = document.getElementById("agree2");
+    const startExamBtn = document.getElementById("startExamBtn");
+
+    function validateAgreements() {
+      startExamBtn.disabled = !(agree1.checked && agree2.checked);
+    }
+    agree1.addEventListener("change", validateAgreements);
+    agree2.addEventListener("change", validateAgreements);
+
+    startExamBtn.addEventListener("click", async () => {
+      studentName = nameInput.value.trim();
+      studentId = idInput.value.trim();
+
+      document.getElementById("instructionsModal").classList.add("hidden");
+      document.getElementById("landingSection").classList.add("hidden");
+      document.getElementById("examSection").classList.remove("hidden");
+
+      document.getElementById("headerStudent").textContent =
+        `${studentName} (${studentId})`;
+
+      const ok = await loadQuestions();
+      if (!ok) {
+        alert("Exam cannot be started. Please contact your instructor.");
+        location.reload();
+        return;
+      }
+
+      // UI에서 사용할 선택값 배열 초기화
+      answers = new Array(questions.length).fill(null);
+      currentIndex = 0;
+      examStartedAt = new Date().toISOString();
+
+      startTimer();
+      showQuestion();
+    });
+
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      if (currentIndex < questions.length - 1) {
+        currentIndex++;
+        showQuestion();
+      } else {
+        if (confirm("Submit your answers now? You cannot change them afterwards.")) {
+          finishExam(false);
+        }
+      }
+    });
+
+    // 텍스트 복사 방지
+    document.addEventListener("copy", (e) => {
+      e.preventDefault();
+    });
+  });
+</script>
 </body>
 </html>
