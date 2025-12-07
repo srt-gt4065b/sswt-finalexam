@@ -3,177 +3,169 @@
 <head>
 <meta charset="UTF-8">
 <title>Student Exam Results</title>
-
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
-
 </head>
+<body class="bg-gray-100 p-8">
+  <h1 class="text-3xl font-bold mb-8 text-purple-600 flex items-center">
+    <span>📊 Student Exam Results</span>
+  </h1>
 
-<body class="bg-gray-100 p-10">
-
-<h1 class="text-3xl font-bold mb-8 text-purple-600">📊 Student Exam Results</h1>
-
-<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-
-<!-- ========== LEFT: STUDENT LIST ========== -->
-<div class="bg-white shadow-lg p-6 rounded-xl">
-    <h2 class="text-xl font-bold mb-4">Students</h2>
-
-    <table class="w-full text-left text-sm">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <!-- LEFT: Students -->
+    <div class="bg-white shadow-lg p-6 rounded-xl">
+      <h2 class="text-xl font-bold mb-4">Students</h2>
+      <table class="w-full text-left text-sm">
         <thead>
-            <tr class="border-b">
-                <th class="py-2 px-2">Name</th>
-                <th>ID</th>
-                <th>Score</th>
-                <th>Time</th>
-            </tr>
+          <tr class="border-b">
+            <th class="py-2 px-2">Name</th>
+            <th>ID</th>
+            <th>Score</th>
+            <th>Time</th>
+          </tr>
         </thead>
         <tbody id="studentTableBody"></tbody>
-    </table>
-</div>
+      </table>
+    </div>
 
-<!-- ========== RIGHT: SELECTED STUDENT DETAILS ========== -->
-<div class="bg-white shadow-lg p-6 rounded-xl md:col-span-2">
-    <h2 id="detailsTitle" class="text-xl font-bold mb-4">
+    <!-- RIGHT: Details -->
+    <div class="bg-white shadow-lg p-6 rounded-xl md:col-span-2">
+      <h2 id="detailsTitle" class="text-xl font-bold mb-4">
         Student’s Test Details
-    </h2>
-
-    <table class="w-full text-left text-sm">
+      </h2>
+      <table class="w-full text-left text-sm">
         <thead>
-            <tr class="border-b bg-gray-50">
-                <th class="py-2 px-2">#</th>
-                <th class="px-2">Question</th>
-                <th class="px-2">Correct Answer</th>
-                <th class="px-2">Selected Answer</th>
-            </tr>
+          <tr class="border-b bg-gray-50">
+            <th class="py-2 px-2">#</th>
+            <th class="px-2">Question</th>
+            <th class="px-2">Correct Answer</th>
+            <th class="px-2">Selected Answer</th>
+          </tr>
         </thead>
         <tbody id="detailsTableBody"></tbody>
-    </table>
-</div>
-
-</div>
+      </table>
+    </div>
+  </div>
 
 <script>
-/* ------------------------------------------------------
-   FIREBASE INIT
------------------------------------------------------- */
+/* ---------------- Firebase ---------------- */
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_DOMAIN",
-    projectId: "sswt-final"
+  apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
+  authDomain: "sswt-final.firebaseapp.com",
+  projectId: "sswt-final"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+/* ---------------- State ---------------- */
 let selectedRow = null;
 
-/* ------------------------------------------------------
-   LOAD STUDENT LIST
------------------------------------------------------- */
+/* ------------- Helpers ------------- */
+function normalizeQuestion(q, idx) {
+  // q는 responses.questions 원소 또는 exam_questions의 원소일 수 있음
+  const options = q.options && q.options.length === 4
+    ? q.options
+    : [q.opt1, q.opt2, q.opt3, q.opt4].filter(v => v !== undefined);
+
+  return {
+    id: q.id || `Q${idx + 1}`,
+    text: q.text || q.question || "",
+    options,
+    answer: typeof q.answer === "number" ? q.answer : parseInt(q.answer ?? 0, 10)
+  };
+}
+
+function getAnswerText(q, idx) {
+  if (idx == null || idx < 0 || !q.options || !q.options[idx]) return "(no answer)";
+  return q.options[idx];
+}
+
+/* -------- Load Students -------- */
 async function loadStudents() {
-    const snap = await db.collection("exam_responses").orderBy("createdAt").get();
-    const table = document.getElementById("studentTableBody");
+  const snap = await db.collection("exam_responses").orderBy("createdAt","desc").get();
+  const tbody = document.getElementById("studentTableBody");
+  tbody.innerHTML = "";
 
-    table.innerHTML = "";
+  snap.forEach(doc => {
+    const d = doc.data();
+    const tr = document.createElement("tr");
+    tr.className = "border-b hover:bg-purple-50 cursor-pointer transition";
+    tr.onclick = () => onStudentClick(tr, doc.id);
 
-    snap.forEach(doc => {
-        const d = doc.data();
-
-        const tr = document.createElement("tr");
-        tr.className = "border-b hover:bg-purple-50 cursor-pointer transition";
-        tr.onclick = () => onStudentClick(tr, doc.id);
-
-        tr.innerHTML = `
-            <td class="py-2 px-2">${d.studentName ?? "(no name)"}</td>
-            <td>${d.studentId ?? ""}</td>
-            <td>${d.score ?? "-"}</td>
-            <td>${d.timeUsedSeconds ?? "-"}s</td>
-        `;
-
-        table.appendChild(tr);
-    });
+    tr.innerHTML = `
+      <td class="py-2 px-2">${d.studentName ?? "(no name)"}</td>
+      <td>${d.studentId ?? ""}</td>
+      <td>${d.score ?? ""}</td>
+      <td>${(d.timeUsedSeconds ?? 0)}s</td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
-/* ------------------------------------------------------
-   LOAD SINGLE STUDENT RESPONSE
------------------------------------------------------- */
-async function getStudentResponse(docId) {
-    const doc = await db.collection("exam_responses").doc(docId).get();
-    return doc.data();
-}
-
-/* ------------------------------------------------------
-   RENDER STUDENT DETAILS (A 방식 전용)
------------------------------------------------------- */
-function showStudentDetails(studentData) {
-
-    const tbody = document.getElementById("detailsTableBody");
-    tbody.innerHTML = "";
-
-    const questions = studentData.questions;       // ⭐ 학생이 실제 본 문제셋
-    const answers = studentData.answers;           // ⭐ index + selected structure
-
-    let correctCount = 0;
-
-    answers.forEach((ans, idx) => {
-
-        const q = questions[ans.index];       // ⭐ index 기반 매칭
-        if (!q) return;
-
-        const correctAns = q.options[q.correct];
-        const selectedAns =
-            ans.selected != null ? q.options[ans.selected] : "(no answer)";
-
-        const isCorrect = ans.selected === q.correct;
-        if (isCorrect) correctCount++;
-
-        tbody.insertAdjacentHTML("beforeend", `
-            <tr class="border-b">
-                <td class="py-2 px-2">${idx + 1}</td>
-                <td class="px-2">${q.text}</td>
-
-                <td class="px-2 font-semibold text-green-600">${correctAns}</td>
-
-                <td class="px-2 font-semibold ${isCorrect ? "text-green-600" : "text-red-600"}">
-                    ${selectedAns}
-                </td>
-            </tr>
-        `);
-    });
-
-    // Title update with score
-    document.getElementById("detailsTitle").textContent =
-        `Student’s Test Details (${correctCount} / ${answers.length})`;
-}
-
-/* ------------------------------------------------------
-   WHEN STUDENT IS CLICKED
------------------------------------------------------- */
+/* ------- Load a student details ------- */
 async function onStudentClick(row, docId) {
+  if (selectedRow) selectedRow.classList.remove("bg-purple-100","border-l-4","border-purple-600");
+  row.classList.add("bg-purple-100","border-l-4","border-purple-600");
+  selectedRow = row;
 
-    // highlight selected row
-    if (selectedRow)
-        selectedRow.classList.remove("bg-purple-100", "border-l-4", "border-purple-600");
+  const doc = await db.collection("exam_responses").doc(docId).get();
+  const d = doc.data();
+  if (!d) return;
 
-    row.classList.add("bg-purple-100", "border-l-4", "border-purple-600");
-    selectedRow = row;
-
-    const studentData = await getStudentResponse(docId);
-
-    if (!studentData.questions || !studentData.answers) {
-        alert("학생 데이터가 손상되었거나 구버전 구조입니다.");
-        return;
+  // 1) 기본은 응시 문서에 저장된 questions 사용 (A 방식)
+  let qArr = Array.isArray(d.questions) ? d.questions : [];
+  // 2) 없으면 exam_questions/{examDocId}에서 로드(레거시 호환)
+  if (!qArr.length && d.examDocId) {
+    const bank = await db.collection("exam_questions").doc(d.examDocId).get();
+    if (bank.exists) {
+      const raw = bank.data().questions || [];
+      qArr = Array.isArray(raw) ? raw : Object.values(raw);
     }
+  }
 
-    showStudentDetails(studentData);
+  const questions = qArr.map(normalizeQuestion);
+
+  // answers: [{index, selected}] 혹은 [{qId, selected}] 등일 수도 있으니 보정
+  const answers = Array.isArray(d.answers) ? d.answers : [];
+  const tbody = document.getElementById("detailsTableBody");
+  tbody.innerHTML = "";
+
+  let correct = 0, total = questions.length;
+
+  for (let i = 0; i < total; i++) {
+    const q = questions[i];
+
+    // 응답에서 index로 찾는 것을 우선 (A 방식)
+    let a = answers.find(x => x.index === i);
+    // 혹시 qId로 저장된 레거시가 있다면 보조 매칭
+    if (!a && q.id) a = answers.find(x => x.qId === q.id);
+
+    const selIdx = a ? a.selected : null;
+    const isCorrect = (selIdx === q.answer);
+    if (isCorrect) correct++;
+
+    const correctText  = getAnswerText(q, q.answer);
+    const selectedText = getAnswerText(q, selIdx);
+
+    tbody.insertAdjacentHTML("beforeend", `
+      <tr class="border-b">
+        <td class="py-2 px-2">${i + 1}</td>
+        <td class="px-2">${q.text}</td>
+        <td class="px-2 font-semibold text-green-600">${correctText}</td>
+        <td class="px-2 font-semibold ${isCorrect ? "text-green-600" : "text-red-600"}">
+          ${selectedText}
+        </td>
+      </tr>
+    `);
+  }
+
+  document.getElementById("detailsTitle").textContent =
+    `Student’s Test Details (${correct} / ${total || 0})`;
 }
 
-/* ------------------------------------------------------
-   INITIAL LOAD
------------------------------------------------------- */
+/* -------- Init -------- */
 loadStudents();
 </script>
-
 </body>
 </html>
