@@ -388,7 +388,7 @@
 
         <!-- 데이터 테이블 -->
         <div class="action-section">
-            <h2>📋 제출 데이터 목록</h2>
+            <h2>📋 시험 응시자 목록</h2>
             <div class="data-table">
                 <table>
                     <thead>
@@ -398,6 +398,7 @@
                             <th>시험 ID</th>
                             <th>제출 시간</th>
                             <th>정답 수</th>
+                            <th>관리</th>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody">
@@ -498,7 +499,7 @@
         async function loadData() {
             addLog('📥 데이터 로딩 시작...');
             const tbody = document.getElementById('dataTableBody');
-            tbody.innerHTML = '<tr><td colspan="5" class="loading">데이터를 불러오는 중...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="loading">데이터를 불러오는 중...</td></tr>';
 
             try {
                 // exam_responses 가져오기
@@ -555,7 +556,7 @@
                 addLog(`✅ ${allData.length}개의 응답 데이터를 불러왔습니다.`);
             } catch (error) {
                 addLog(`❌ 오류: ${error.message}`);
-                tbody.innerHTML = '<tr><td colspan="5" class="loading">데이터 로드 실패</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="loading">데이터 로드 실패</td></tr>';
             }
         }
 
@@ -564,7 +565,7 @@
             const tbody = document.getElementById('dataTableBody');
             
             if(data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="loading">데이터가 없습니다.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="loading">데이터가 없습니다.</td></tr>';
                 return;
             }
 
@@ -622,6 +623,9 @@
                         <td>${examId}</td>
                         <td>${timestamp}</td>
                         <td>${correctCount}</td>
+                        <td>
+                            <button class="delete-btn" onclick="deleteOne('${item.id}')">삭제</button>
+                        </td>
                     </tr>
                 `;
             }).join('');
