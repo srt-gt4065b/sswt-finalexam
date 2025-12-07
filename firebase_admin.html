@@ -394,10 +394,10 @@
                     <thead>
                         <tr>
                             <th>학번</th>
+                            <th>이름</th>
                             <th>시험 ID</th>
                             <th>제출 시간</th>
                             <th>정답 수</th>
-                            <th>관리</th>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody">
@@ -568,25 +568,60 @@
                 return;
             }
 
-            tbody.innerHTML = data.map(item => {
-                const timestamp = item.timestamp ? new Date(item.timestamp).toLocaleString('ko-KR') : '-';
-                
+            tbody.innerHTML = data.map((item, index) => {
                 // 다양한 필드명 지원
-                const studentId = item.studentId || item.student_id || item.studentID || item.id || '-';
-                const examId = item.examId || item.exam_id || item.examID || item.id || '-';
+                const studentId = item.studentId || item.student_id || item.studentID || item.userId || '-';
+                const studentName = item.name || item.studentName || item.student_name || item.userName || item.user_name || '-';
+                const examId = item.examId || item.exam_id || item.examID || '-';
                 
-                const correctCount = item.correctAnswers ? 
-                    Object.values(item.correctAnswers).filter(v => v === 0).length : '-';
+                // 제출시간 처리
+                let timestamp = '-';
+                if(item.timestamp) {
+                    timestamp = new Date(item.timestamp).toLocaleString('ko-KR');
+                } else if(item.startedAt) {
+                    timestamp = new Date(item.startedAt).toLocaleString('ko-KR');
+                } else if(item.submittedAt) {
+                    timestamp = new Date(item.submittedAt).toLocaleString('ko-KR');
+                } else if(item.createdAt) {
+                    timestamp = new Date(item.createdAt).toLocaleString('ko-KR');
+                } else if(item.created_at) {
+                    timestamp = new Date(item.created_at).toLocaleString('ko-KR');
+                }
+                
+                // 정답수 계산
+                let correctCount = '-';
+                if(item.correctAnswers) {
+                    // correctAnswers가 객체인 경우 (예: {0: 0, 1: 1, 2: 0})
+                    if(typeof item.correctAnswers === 'object') {
+                        correctCount = Object.values(item.correctAnswers).filter(v => v === 0).length;
+                    }
+                } else if(item.score !== undefined) {
+                    correctCount = item.score;
+                } else if(item.correctCount !== undefined) {
+                    correctCount = item.correctCount;
+                } else if(item.correct_count !== undefined) {
+                    correctCount = item.correct_count;
+                }
+
+                // 첫 번째 데이터의 구조를 로그로 출력 (디버깅용)
+                if(index === 0) {
+                    console.log('📊 표시되는 데이터 샘플:', {
+                        studentId,
+                        studentName,
+                        examId,
+                        timestamp,
+                        correctCount,
+                        원본데이터: item
+                    });
+                }
 
                 return `
                     <tr>
                         <td>${studentId}</td>
+                        <td>${studentName}</td>
                         <td>${examId}</td>
                         <td>${timestamp}</td>
                         <td>${correctCount}</td>
-                        <td>
-                            <button class="delete-btn" onclick="deleteOne('${item.id}')">삭제</button>
-                        </td>
                     </tr>
                 `;
             }).join('');
@@ -619,7 +654,14 @@
             // 정렬
             filteredData.sort((a, b) => {
                 if(sortBy === 'timestamp') {
-                    return (b.timestamp || 0) - (a.timestamp || 0);
+                    // 다양한 timestamp 필드 지원
+                    const aTime = a.timestamp || (a.startedAt ? new Date(a.startedAt).getTime() : 0) || 
+                                  (a.submittedAt ? new Date(a.submittedAt).getTime() : 0) ||
+                                  (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+                    const bTime = b.timestamp || (b.startedAt ? new Date(b.startedAt).getTime() : 0) || 
+                                  (b.submittedAt ? new Date(b.submittedAt).getTime() : 0) ||
+                                  (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+                    return bTime - aTime;
                 } else if(sortBy === 'studentId') {
                     const aId = a.studentId || a.student_id || a.studentID || '';
                     const bId = b.studentId || b.student_id || b.studentID || '';
@@ -684,13 +726,29 @@
             const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
 
             try {
-                const snapshot = await db.collection('exam_responses')
-                    .where('timestamp', '<', thirtyDaysAgo)
-                    .get();
-
+                const snapshot = await db.collection('exam_responses').get();
                 const deletePromises = [];
+                
                 snapshot.forEach(doc => {
-                    deletePromises.push(doc.ref.delete());
+                    const data = doc.data();
+                    let docTimestamp = null;
+                    
+                    // 다양한 timestamp 필드 지원
+                    if(data.timestamp) {
+                        docTimestamp = data.timestamp;
+                    } else if(data.startedAt) {
+                        docTimestamp = new Date(data.startedAt).getTime();
+                    } else if(data.submittedAt) {
+                        docTimestamp = new Date(data.submittedAt).getTime();
+                    } else if(data.createdAt) {
+                        docTimestamp = new Date(data.createdAt).getTime();
+                    } else if(data.created_at) {
+                        docTimestamp = new Date(data.created_at).getTime();
+                    }
+                    
+                    if(docTimestamp && docTimestamp < thirtyDaysAgo) {
+                        deletePromises.push(doc.ref.delete());
+                    }
                 });
 
                 await Promise.all(deletePromises);
@@ -708,16 +766,42 @@
                 return;
             }
 
-            let csv = '학번,시험ID,제출시간,정답수\n';
+            let csv = '학번,이름,시험ID,제출시간,정답수\n';
             
             filteredData.forEach(item => {
-                const timestamp = item.timestamp ? new Date(item.timestamp).toLocaleString('ko-KR') : '-';
-                const studentId = item.studentId || item.student_id || item.studentID || '-';
+                const studentId = item.studentId || item.student_id || item.studentID || item.userId || '-';
+                const studentName = item.name || item.studentName || item.student_name || item.userName || item.user_name || '-';
                 const examId = item.examId || item.exam_id || item.examID || '-';
-                const correctCount = item.correctAnswers ? 
-                    Object.values(item.correctAnswers).filter(v => v === 0).length : '-';
                 
-                csv += `${studentId},${examId},${timestamp},${correctCount}\n`;
+                // 제출시간
+                let timestamp = '-';
+                if(item.timestamp) {
+                    timestamp = new Date(item.timestamp).toLocaleString('ko-KR');
+                } else if(item.startedAt) {
+                    timestamp = new Date(item.startedAt).toLocaleString('ko-KR');
+                } else if(item.submittedAt) {
+                    timestamp = new Date(item.submittedAt).toLocaleString('ko-KR');
+                } else if(item.createdAt) {
+                    timestamp = new Date(item.createdAt).toLocaleString('ko-KR');
+                } else if(item.created_at) {
+                    timestamp = new Date(item.created_at).toLocaleString('ko-KR');
+                }
+                
+                // 정답수
+                let correctCount = '-';
+                if(item.correctAnswers) {
+                    if(typeof item.correctAnswers === 'object') {
+                        correctCount = Object.values(item.correctAnswers).filter(v => v === 0).length;
+                    }
+                } else if(item.score !== undefined) {
+                    correctCount = item.score;
+                } else if(item.correctCount !== undefined) {
+                    correctCount = item.correctCount;
+                } else if(item.correct_count !== undefined) {
+                    correctCount = item.correct_count;
+                }
+                
+                csv += `${studentId},${studentName},${examId},${timestamp},${correctCount}\n`;
             });
 
             const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
