@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Final Exam – Fall 2025 SSWT (Prof. HYOUNGTAE KIM)</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+<body class="bg-gray-100 p-10">
+
+<!-- ================= HEADER ================= -->
+<h1 class="text-3xl font-bold text-purple-600 mb-6">Statistics Final – Fall 2025 SSWT (Prof. HYOUNGTAE KIM)</h1>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="bg-white p-6 shadow-lg rounded-xl w-96">
+    <h2 class="text-xl font-bold mb-4">Enter Student Info</h2>
+
+    <label>ID</label>
+    <input id="studentId" class="border p-2 w-full mb-3">
+
+    <label>Name</label>
+    <input id="studentName" class="border p-2 w-full mb-3">
+
+    <button onclick="beginExam()"
+        class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+        Start Exam
+    </button>
+</div>
+
+<!-- ================= EXAM AREA ================= -->
+<div id="examScreen" class="hidden">
+
+    <h2 class="text-xl font-bold mb-4 flex justify-between">
+        <span>Time Remaining:</span>
+        <span id="timeBox" class="text-red-600 font-mono text-2xl"></span>
+    </h2>
+
+    <div id="questionBox" class="bg-white p-6 shadow rounded-xl mb-6"></div>
+
+    <button onclick="nextQuestion()"
+        class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+        Next →
+    </button>
+</div>
+
+<script>
+/* --------------------------------------
+   FIREBASE INIT
+-------------------------------------- */
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "sswt-final"
+};
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+
+/* --------------------------------------
+   TEST CONFIG
+-------------------------------------- */
+const EXAM_DOC = "Fall 2025 SSWT (Prof. HYOUNGTAE KIM)";      // ← test5 시험버전
+let TOTAL_TIME = 600;           // 10분
+let questions = [];
+let studentQuestions = [];      // 학생이 실제 본 문제 전체 배열
+let answers = [];
+let current = 0;
+let timer = null;
+
+/* --------------------------------------
+   LOAD test5 QUESTIONS
+-------------------------------------- */
+async function loadQuestions() {
+    const doc = await db.collection("exam_questions").doc(EXAM_DOC).get();
+    const data = doc.data();
+
+    if (!data || !data.questions) {
+        alert("시험 문제를 불러올 수 없습니다.");
+        return;
+    }
+
+    questions = data.questions;
+
+    // ⭐ 학생 문제 배열을 그대로 저장
+    studentQuestions = [...questions];
+}
+
+/* --------------------------------------
+   START EXAM
+-------------------------------------- */
+async function beginExam() {
+    await loadQuestions();
+
+    document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("examScreen").classList.remove("hidden");
+
+    startTimer();
+    renderQuestion();
+}
+
+/* --------------------------------------
+   RENDER QUESTION
+-------------------------------------- */
+function renderQuestion() {
+    const q = studentQuestions[current];
+
+    let html = `
+        <div class="text-lg font-bold mb-4">
+            Question ${current + 1} / ${studentQuestions.length}
+        </div>
+        <div class="mb-4">${q.text}</div>
+    `;
+
+    q.options.forEach((opt, idx) => {
+        html += `
+            <label class="block mb-2">
+                <input type="radio" name="opt" value="${idx}">
+                ${opt}
+            </label>
+        `;
+    });
+
+    document.getElementById("questionBox").innerHTML = html;
+}
+
+/* --------------------------------------
+   NEXT QUESTION
+-------------------------------------- */
+function nextQuestion() {
+    const selected = document.querySelector("input[name='opt']:checked");
+
+    answers.push({
+        index: current,                     // ⭐ 문제 번호만 저장
+        selected: selected ? parseInt(selected.value) : null
+    });
+
+    current++;
+
+    if (current >= studentQuestions.length) {
+        finishExam();
+        return;
+    }
+
+    renderQuestion();
+}
+
+/* --------------------------------------
+   TIMER
+-------------------------------------- */
+function startTimer() {
+    timer = setInterval(() => {
+        TOTAL_TIME--;
+        document.getElementById("timeBox").textContent = TOTAL_TIME + "s";
+
+        if (TOTAL_TIME <= 0) finishExam();
+    }, 1000);
+}
+
+/* --------------------------------------
+   SUBMIT TO FIRESTORE (SAFE FORMAT)
+-------------------------------------- */
+async function finishExam() {
+    clearInterval(timer);
+
+    const studentId = document.getElementById("studentId").value;
+    const studentName = document.getElementById("studentName").value;
+
+    await db.collection("exam_responses").add({
+        studentId,
+        studentName,
+        examDocId: EXAM_DOC,
+        answers,
+        questions: studentQuestions,     // ⭐ 학생이 실제 본 문제 전체 저장
+        score: null,                     // 채점은 admin_results에서 수행
+        timeUsedSeconds: (600 - TOTAL_TIME),
+        createdAt: new Date().toISOString()
+    });
+
+    alert("시험이 제출되었습니다!");
+    location.reload();
+}
+</script>
+
+</body>
+</html>
