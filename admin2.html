@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Admin Panel – SSWT Exam</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+</head>
+
+<body class="bg-gray-100 min-h-screen p-6">
+
+<div class="max-w-7xl mx-auto bg-white p-8 rounded-2xl shadow-xl">
+
+    <h1 class="text-3xl md:text-4xl font-bold text-center text-purple-700 mb-6">
+        Admin Panel – SSWT Final Exam Manager
+    </h1>
+
+    <!-- ========================================================= -->
+    <!-- TABS: main navigation -->
+    <!-- ========================================================= -->
+    <div class="border-b mb-4 flex flex-wrap gap-2">
+        <button class="tab-btn px-4 py-2 font-semibold border-b-2 border-purple-600 text-purple-700"
+            data-tab="wrongTab">Wrong Questions</button>
+
+        <button class="tab-btn px-4 py-2 font-semibold text-gray-500"
+            data-tab="studentListTab">Student List Upload</button>
+
+        <button class="tab-btn px-4 py-2 font-semibold text-gray-500"
+            data-tab="otherTab1">Other Admin Feature 1</button>
+
+        <button class="tab-btn px-4 py-2 font-semibold text-gray-500"
+            data-tab="otherTab2">Other Admin Feature 2</button>
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- TAB CONTENT: Wrong Questions (existing feature) -->
+    <!-- ========================================================= -->
+    <div id="wrongTab" class="tab-pane block">
+        <h2 class="text-xl font-bold mb-4 text-purple-700">Student Wrong Question Summary</h2>
+
+        <p class="text-sm text-gray-600 mb-4">
+            Select a student to view incorrect answers and grading summary.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- Student List -->
+            <div class="border rounded-xl p-4 bg-gray-50 max-h-[600px] overflow-auto">
+                <h3 class="font-semibold mb-2">Students</h3>
+                <div id="studentListContainer" class="space-y-2 text-sm"></div>
+            </div>
+
+            <!-- Wrong Question Results -->
+            <div class="border rounded-xl p-4 bg-gray-50 md:col-span-2">
+                <h3 id="wrongTitle" class="font-semibold mb-2">
+                    Select a student to view details
+                </h3>
+                <div id="wrongResultsArea" class="text-sm space-y-2"></div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- TAB: Student List Upload (NEW FEATURE) -->
+    <!-- ========================================================= -->
+    <div id="studentListTab" class="tab-pane hidden">
+        <h2 class="text-xl font-bold mb-4 text-purple-700">Upload Student List (CSV)</h2>
+
+        <p class="text-sm text-gray-600 mb-2">
+            CSV Format: <span class="font-mono">FullName,SID</span>
+        </p>
+
+        <input id="studentCsvFile" type="file" accept=".csv"
+               class="w-full border p-3 rounded bg-white shadow-sm mb-4">
+
+        <button onclick="previewStudentCSV()"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold">
+            Preview CSV
+        </button>
+
+        <div id="studentCsvPreview" class="mt-4 text-sm"></div>
+
+        <button id="uploadStudentListBtn" onclick="uploadStudentList()"
+            class="hidden w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-bold mt-4">
+            Upload to Firestore
+        </button>
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- OTHER FAKE TABS (placeholders, not modified) -->
+    <!-- ========================================================= -->
+    <div id="otherTab1" class="tab-pane hidden">
+        <h2 class="text-xl font-bold mb-4">Other Feature Placeholder</h2>
+        <p class="text-gray-500">Existing features remain untouched.</p>
+    </div>
+
+    <div id="otherTab2" class="tab-pane hidden">
+        <h2 class="text-xl font-bold mb-4">Other Feature Placeholder 2</h2>
+        <p class="text-gray-500">Existing features remain untouched.</p>
+    </div>
+
+    <script>
+/* =========================================================
+    TAB SWITCHING LOGIC
+========================================================= */
+const tabButtons = document.querySelectorAll(".tab-btn");
+const tabPanes   = document.querySelectorAll(".tab-pane");
+
+tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const target = btn.dataset.tab;
+
+        tabButtons.forEach(b => {
+            b.classList.remove("border-purple-600", "text-purple-700");
+            b.classList.add("text-gray-500");
+        });
+
+        btn.classList.add("border-purple-600", "text-purple-700");
+        btn.classList.remove("text-gray-500");
+
+        tabPanes.forEach(p => p.classList.add("hidden"));
+        document.getElementById(target).classList.remove("hidden");
+    });
+});
+
+
+/* =========================================================
+    CSV PARSER FOR STUDENT LIST
+========================================================= */
+function parseStudentCSV(text) {
+    const lines = text.trim().split("\n");
+    const rows = [];
+
+    for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(",");
+        if (cols.length < 2) continue;
+
+        const name = cols[0].trim();
+        const sid  = cols[1].trim();
+
+        if (!name || !sid) continue;
+
+        rows.push({ name, sid });
+    }
+    return rows;
+}
+
+let studentPreview = [];  // global csv preview array
+
+
+/* =========================================================
+    PREVIEW CSV + CHECK DUPLICATES IN FIRESTORE
+========================================================= */
+async function previewStudentCSV() {
+    const file = document.getElementById("studentCsvFile").files[0];
+    if (!file) {
+        alert("Please select a CSV file first.");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async e => {
+        const text = e.target.result;
+        const rows = parseStudentCSV(text);
+        studentPreview = rows;
+
+        // Fetch existing SIDs from Firestore
+        const snap = await db.collection("student_list").get();
+        const existingSIDs = new Set(snap.docs.map(d => d.id));
+
+        // Render preview table
+        let html = `<h3 class="font-bold mb-2">Preview (${rows.length} students)</h3>`;
+        html += `<table class="w-full text-left text-xs border">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="px-2 py-1 border">Full Name</th>
+                    <th class="px-2 py-1 border">SID</th>
+                    <th class="px-2 py-1 border">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        rows.forEach(r => {
+            const duplicated = existingSIDs.has(r.sid);
+
+            html += `
+                <tr>
+                    <td class="border px-2 py-1">${r.name}</td>
+                    <td class="border px-2 py-1">${r.sid}</td>
+                    <td class="border px-2 py-1 ${duplicated ? "text-red-600" : "text-green-600"}">
+                        ${duplicated ? "Duplicate (will overwrite)" : "New"}
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += "</tbody></table>";
+
+        document.getElementById("studentCsvPreview").innerHTML = html;
+
+        // Show upload button
+        document.getElementById("uploadStudentListBtn").classList.remove("hidden");
+    };
+
+    reader.readAsText(file);
+}
+</script>
+
+<script>
+/* =========================================================
+    UPLOAD STUDENT LIST INTO FIRESTORE
+========================================================= */
+async function uploadStudentList() {
+    if (!studentPreview.length) {
+        alert("No student data to upload.");
+        return;
+    }
+
+    if (!confirm("Upload student list to Firestore?\nDuplicates will be overwritten.")) {
+        return;
+    }
+
+    const batch = db.batch();
+    const col = db.collection("student_list");
+
+    studentPreview.forEach(s => {
+        const ref = col.doc(s.sid);
+        batch.set(ref, {
+            name: s.name,
+            sid: s.sid,
+            updatedAt: new Date().toISOString()
+        });
+    });
+
+    try {
+        await batch.commit();
+
+        document.getElementById("studentCsvPreview").innerHTML =
+            `<p class="text-green-600 font-semibold mt-3">
+                ✅ Student list successfully uploaded (${studentPreview.length} records)
+             </p>`;
+
+        document.getElementById("uploadStudentListBtn").classList.add("hidden");
+
+    } catch (err) {
+        console.error(err);
+        alert("Upload failed. Check console for details.");
+    }
+}
+</script>
+
+<!-- =========================================================
+    WRONG QUESTION CHECKER (EXISTING FUNCTIONALITY)
+========================================================= -->
+
+<script>
+// Load wrong questions per student
+async function loadWrongQuestions() {
+    const snap = await db.collection("exam_responses").get();
+    const tbody = document.getElementById("wrongQuestionsTableBody");
+    tbody.innerHTML = "";
+
+    snap.forEach(doc => {
+        const d = doc.data();
+        const wrong = d.wrongQuestions ?? [];
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td class="border px-2 py-1">${d.studentName}</td>
+            <td class="border px-2 py-1">${d.studentId}</td>
+            <td class="border px-2 py-1">${wrong.length}</td>
+            <td class="border px-2 py-1">${wrong.join(", ")}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+</script>
+
+<!-- =========================================================
+    PAGE INITIALIZATION
+========================================================= -->
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    loadWrongQuestions();
+});
+</script>
+
+</body>
+</html>
