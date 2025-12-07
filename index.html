@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Statistics with SW Tools - Fall 2025 Final Exam</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+</head>
+<body class="bg-gray-100 min-h-screen flex justify-center p-6">
+
+<div id="loginScreen" class="w-full max-w-lg bg-white shadow-xl rounded-2xl p-8">
+    <h1 class="text-2xl font-bold text-center text-purple-700 mb-4">
+        Statistics with SW Tools - 2025 Fall Final Exam
+    </h1>
+
+    <p class="text-gray-600 text-sm text-center mb-6">
+        Please enter your Student ID and Name to begin authentication.
+    </p>
+
+    <!-- Student ID -->
+    <label class="block font-semibold mb-1">Student ID</label>
+    <input id="studentIdInput" 
+           type="text" 
+           class="w-full border rounded-lg p-3 mb-4"
+           placeholder="Enter your Student ID">
+
+    <!-- Student Name -->
+    <label class="block font-semibold mb-1">Full Name</label>
+    <input id="studentNameInput" 
+           type="text" 
+           class="w-full border rounded-lg p-3 mb-4"
+           placeholder="Enter your Full Name">
+
+    <!-- Warning Text -->
+    <p id="authWarning" class="hidden text-red-600 font-semibold mb-3"></p>
+
+    <!-- Start Button -->
+    <button id="authButton"
+            onclick="authenticateStudent()"
+            class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold p-3 rounded-lg mt-2">
+        Verify & Continue
+    </button>
+</div>
+
+<!-- Instructions Screen -->
+<div id="instructionScreen" class="hidden w-full max-w-3xl bg-white shadow-xl rounded-2xl p-8">
+    <h2 class="text-xl font-bold mb-4 text-purple-700">📘 Exam Instructions</h2>
+
+    <ul class="list-disc ml-6 space-y-2 text-gray-700">
+        <li>The exam consists of <b>100 questions</b>.</li>
+        <li>Total exam duration is <b>30 minutes</b>.</li>
+        <li>You cannot retake the exam once submitted.</li>
+        <li>Be careful: if you spend more than <b>18 seconds</b> per question on average, you may run out of time.</li>
+        <li>If a question is too difficult, guess and move on quickly.</li>
+    </ul>
+
+    <button onclick="startExam()"
+        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold p-3 rounded-lg mt-6">
+        Start Exam
+    </button>
+</div>
+
+<!-- Exam Screen -->
+<div id="examScreen" class="hidden w-full max-w-4xl bg-white shadow-xl rounded-2xl p-8">
+
+    <!-- TIMER -->
+    <div class="text-right text-lg font-bold text-red-600 mb-4">
+        Time Left: <span id="timerDisplay">30:00</span>
+    </div>
+
+    <h2 id="questionText" class="text-lg font-semibold mb-4"></h2>
+
+    <div id="optionsArea" class="space-y-3 mb-6"></div>
+
+    <button id="nextBtn"
+        onclick="nextQuestion()"
+        class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold p-3 rounded-lg">
+        Next Question
+    </button>
+</div>
+
+<script>
+/* -----------------------------------------------------
+    FIREBASE INIT
+----------------------------------------------------- */
+const firebaseConfig = {
+    apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
+    authDomain: "sswt-final.firebaseapp.com",
+    projectId: "sswt-final"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* -----------------------------------------------------
+   GLOBAL STATE
+----------------------------------------------------- */
+let CURRENT_DOC_ID = "current";
+let studentId = "";
+let studentName = "";
+let loadedQuestions = [];
+let shuffledQuestions = [];
+let answers = [];
+let currentIndex = 0;
+let timerInterval;
+let timeLeft = 1800; // 30 minutes
+
+/* -----------------------------------------------------
+   1) STUDENT AUTHENTICATION
+----------------------------------------------------- */
+
+async function authenticateStudent() {
+    const sid = document.getElementById("studentIdInput").value.trim();
+    const nameInput = document.getElementById("studentNameInput").value.trim().toLowerCase();
+    const warn = document.getElementById("authWarning");
+
+    if (!sid || !nameInput) {
+        warn.textContent = "Please enter both Student ID and Name.";
+        warn.classList.remove("hidden");
+        return;
+    }
+
+    // Load student list
+    const snap = await db.collection("student_list").where("sid", "==", sid).get();
+
+    if (snap.empty) {
+        warn.textContent = "Invalid Student ID.";
+        warn.classList.remove("hidden");
+        return;
+    }
+
+    const info = snap.docs[0].data();
+    const fullNameLower = info.name.toLowerCase();
+
+    // PARTIAL NAME MATCHING
+    if (!fullNameLower.includes(nameInput)) {
+        warn.textContent = "Name does not match the student list.";
+        warn.classList.remove("hidden");
+        return;
+    }
+
+    // Check duplicate attempt
+    const attempt = await db.collection("exam_responses")
+        .where("studentId", "==", sid)
+        .where("examDocId", "==", CURRENT_DOC_ID)
+        .get();
+
+    if (!attempt.empty) {
+        warn.textContent = "You have already taken this exam.";
+        warn.classList.remove("hidden");
+        return;
+    }
+
+    // Store global
+    studentId = sid;
+    studentName = info.name;
+
+    // Move to instructions
+    document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("instructionScreen").classList.remove("hidden");
+}
+</script>
+
+<script>
+/* -----------------------------------------------------
+   2) LOAD QUESTIONS (FROM exam_questions/current)
+----------------------------------------------------- */
+async function loadQuestions() {
+    const doc = await db.collection("exam_questions").doc(CURRENT_DOC_ID).get();
+    if (!doc.exists) {
+        alert("Exam questions not found in Firestore.");
+        return;
+    }
+
+    loadedQuestions = doc.data().questions;
+
+    // A) SHUFFLE QUESTIONS
+    shuffledQuestions = loadedQuestions
+        .map((q, idx) => ({ ...q, originalIndex: idx }))
+        .sort(() => Math.random() - 0.5);
+
+    // Prepare answer array
+    answers = new Array(shuffledQuestions.length).fill(null);
+
+    loadQuestionToScreen();
+}
+
+/* -----------------------------------------------------
+   3) SHOW QUESTION + SHUFFLE OPTIONS
+----------------------------------------------------- */
+function loadQuestionToScreen() {
+    const q = shuffledQuestions[currentIndex];
+
+    document.getElementById("questionText").textContent =
+        `Q${currentIndex + 1}. ${q.text}`;
+
+    const opts = q.options.map((opt, i) => ({ text: opt, idx: i }))
+                          .sort(() => Math.random() - 0.5);
+
+    let html = "";
+    opts.forEach(o => {
+        html += `
+            <label class="flex items-center border rounded-lg p-3 cursor-pointer hover:bg-purple-50">
+                <input type="radio" 
+                       name="option"
+                       value="${o.idx}"
+                       class="mr-3">
+                <span>${o.text}</span>
+            </label>
+        `;
+    });
+
+    document.getElementById("optionsArea").innerHTML = html;
+}
+
+/* -----------------------------------------------------
+   4) NEXT QUESTION BUTTON
+----------------------------------------------------- */
+function nextQuestion() {
+    const selected = document.querySelector("input[name='option']:checked");
+
+    if (selected) {
+        answers[currentIndex] = parseInt(selected.value);
+    }
+
+    currentIndex++;
+
+    if (currentIndex >= shuffledQuestions.length) {
+        submitExam();
+        return;
+    }
+
+    loadQuestionToScreen();
+}
+
+/* -----------------------------------------------------
+   5) TIMER
+----------------------------------------------------- */
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timeLeft--;
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            submitExam();
+        }
+
+        const min = Math.floor(timeLeft / 60);
+        const sec = String(timeLeft % 60).padStart(2, "0");
+
+        document.getElementById("timerDisplay").textContent = `${min}:${sec}`;
+    }, 1000);
+}
+
+/* -----------------------------------------------------
+   6) START EXAM BUTTON
+----------------------------------------------------- */
+async function startExam() {
+    document.getElementById("instructionScreen").classList.add("hidden");
+    document.getElementById("examScreen").classList.remove("hidden");
+
+    await loadQuestions();
+    startTimer();
+}
+
+/* -----------------------------------------------------
+   7) COMPUTE SCORE
+----------------------------------------------------- */
+function computeScore() {
+    let correct = 0;
+
+    answers.forEach((ans, idx) => {
+        const q = shuffledQuestions[idx];
+        if (ans === q.answer) correct++;
+    });
+
+    return correct;
+}
+
+/* -----------------------------------------------------
+   8) SUBMIT EXAM → SAVE TO FIRESTORE
+----------------------------------------------------- */
+async function submitExam() {
+    clearInterval(timerInterval);
+
+    const score = computeScore();
+
+    await db.collection("exam_responses").add({
+        examDocId: CURRENT_DOC_ID,
+        studentId: studentId,
+        studentName: studentName,
+        answers: answers,
+        questionOrder: shuffledQuestions.map(q => q.originalIndex),
+        score: score,
+        submittedAt: new Date().toISOString(),
+        timeUsedSeconds: 1800 - timeLeft
+    });
+
+    alert(`Exam submitted!\nYour score: ${score}`);
+
+    location.reload();
+}
+</script>
+
+</body>
+</html>
