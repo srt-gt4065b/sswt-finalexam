@@ -230,12 +230,110 @@
         .log-entry {
             margin-bottom: 5px;
         }
+
+        /* 로그인 화면 스타일 */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .login-container {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-container h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .login-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1em;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .login-form input[type="password"] {
+            padding: 15px;
+            font-size: 1.1em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .login-form input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-form button {
+            padding: 15px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .login-error {
+            color: #dc3545;
+            font-size: 0.9em;
+            min-height: 20px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎓 시험 데이터 관리자</h1>
-        <p class="subtitle">Firebase Firestore 데이터베이스 관리</p>
+    <!-- 로그인 화면 -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <h1>🔐 관리자 로그인</h1>
+            <p class="login-subtitle">Firebase 시험 데이터 관리자</p>
+            <div class="login-form">
+                <input type="password" id="passwordInput" placeholder="비밀번호를 입력하세요" onkeypress="if(event.key==='Enter') checkPassword()">
+                <button onclick="checkPassword()">로그인</button>
+                <div id="loginError" class="login-error"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 관리자 페이지 (로그인 후 표시) -->
+    <div class="container" id="adminContent" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h1>🎓 시험 데이터 관리자</h1>
+                <p class="subtitle">Firebase Firestore 데이터베이스 관리</p>
+            </div>
+            <button class="btn-danger" onclick="logout()" style="height: fit-content;">
+                🚪 로그아웃
+            </button>
+        </div>
 
         <!-- 통계 카드 -->
         <div class="stats-grid">
@@ -325,6 +423,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
     <script>
+        // ⚠️ 비밀번호 설정 (원하는 비밀번호로 변경하세요)
+        const ADMIN_PASSWORD = "1230";
+
         // ⚠️ Firebase 설정을 여기에 입력하세요
         const firebaseConfig = {
             apiKey: "AIzaSyBGd_KrhvdCfxeRPcXn7f8csLUfcZkmKVs",
@@ -342,6 +443,48 @@
 
         let allData = [];
         let filteredData = [];
+
+        // 비밀번호 확인
+        function checkPassword() {
+            const input = document.getElementById('passwordInput').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if(input === ADMIN_PASSWORD) {
+                // 로그인 성공
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('adminContent').style.display = 'block';
+                addLog('🔓 관리자 로그인 성공');
+                loadData();
+            } else {
+                // 로그인 실패
+                errorDiv.textContent = '❌ 비밀번호가 올바르지 않습니다.';
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        // 로그아웃
+        function logout() {
+            if(confirm('로그아웃 하시겠습니까?')) {
+                sessionStorage.removeItem('adminLoggedIn');
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('adminContent').style.display = 'none';
+                document.getElementById('passwordInput').value = '';
+                addLog('🚪 로그아웃 완료');
+            }
+        }
+
+        // 세션 확인
+        function checkSession() {
+            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+            if(isLoggedIn === 'true') {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('adminContent').style.display = 'block';
+                return true;
+            }
+            return false;
+        }
 
         // 로그 추가 함수
         function addLog(message) {
@@ -586,10 +729,18 @@
             addLog(`💾 CSV 파일 내보내기 완료 (${filteredData.length}개 항목)`);
         }
 
-        // 페이지 로드시 데이터 불러오기
+        // 페이지 로드시 세션 확인
         window.onload = function() {
             addLog('🚀 Firebase 관리자 페이지 시작');
-            loadData();
+            
+            // 세션이 있으면 자동 로그인
+            if(checkSession()) {
+                addLog('✅ 세션 확인 완료 - 자동 로그인');
+                loadData();
+            } else {
+                // 로그인 화면에 포커스
+                document.getElementById('passwordInput').focus();
+            }
         };
     </script>
 </body>
