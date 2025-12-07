@@ -74,6 +74,9 @@
     ※ Your student ID must be correct. Once submitted, it cannot be changed.
   </p>
 </div>
+  //시험 시작시 학생에게 실제 보여줄 questions 배열 저장
+//let studentQuestions = [...questions]; // 시험에 사용한 문제 원본
+//sessionStorage.setItem("studentQuestions", JSON.stringify(studentQuestions));
 
 <!-- =============== -->
 <!-- Exam Section -->
@@ -223,8 +226,8 @@
   // =====================
   // Global State
   // =====================
-  const EXAM_DOC_ID = "test10";
-  const TOTAL_TIME_SECONDS = 300; // 5분
+  const EXAM_DOC_ID = "test5";
+  const TOTAL_TIME_SECONDS = 150; // 5분
 
   let studentName = "";
   let studentId = "";
