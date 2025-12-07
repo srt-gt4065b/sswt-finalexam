@@ -388,7 +388,7 @@
 
         <!-- 데이터 테이블 -->
         <div class="action-section">
-            <h2>📋 시험 응시자 목록</h2>
+            <h2>📋 제출 데이터 목록</h2>
             <div class="data-table">
                 <table>
                     <thead>
@@ -522,14 +522,8 @@
                         ...data
                     });
                     
-                    // examId 또는 exam_id 또는 문서 ID 자체를 시험 ID로 사용
-                    const examIdentifier = data.examId || data.exam_id || data.examID || doc.id;
-                    if(examIdentifier) {
-                        examSet.add(examIdentifier);
-                        if(index === 0) {
-                            addLog(`🎯 시험 ID 필드: ${data.examId ? 'examId' : data.exam_id ? 'exam_id' : data.examID ? 'examID' : '문서 ID 사용'}`);
-                        }
-                    }
+                    // 문서 ID를 시험 ID로 사용
+                    examSet.add(doc.id);
                 });
 
                 // exam_questions에서 시험 종류 수 가져오기
@@ -546,9 +540,9 @@
                 const examFilter = document.getElementById('examFilter');
                 examFilter.innerHTML = '<option value="">모든 시험</option>';
                 
-                // exam_questions의 문서 ID를 필터 옵션으로 추가
-                examQuestionsSnapshot.forEach(doc => {
-                    examFilter.innerHTML += `<option value="${doc.id}">${doc.id}</option>`;
+                // exam_responses의 문서 ID를 필터 옵션으로 추가
+                examSet.forEach(docId => {
+                    examFilter.innerHTML += `<option value="${docId}">${docId}</option>`;
                 });
 
                 filteredData = [...allData];
@@ -573,7 +567,9 @@
                 // 다양한 필드명 지원
                 const studentId = item.studentId || item.student_id || item.studentID || item.userId || '-';
                 const studentName = item.name || item.studentName || item.student_name || item.userName || item.user_name || '-';
-                const examId = item.examId || item.exam_id || item.examID || '-';
+                
+                // 시험 ID는 문서 ID 사용
+                const examId = item.id || '-';
                 
                 // 제출시간 처리
                 let timestamp = '-';
@@ -640,17 +636,13 @@
             // 필터링
             filteredData = allData.filter(item => {
                 const studentId = item.studentId || item.student_id || item.studentID || '';
-                const examId = item.examId || item.exam_id || item.examID || '';
+                const examId = item.id || ''; // 문서 ID를 시험 ID로 사용
                 
                 const matchSearch = !searchText || 
                     studentId.toLowerCase().includes(searchText) ||
                     examId.toLowerCase().includes(searchText);
                 
-                const matchExam = !examFilter || 
-                    examId === examFilter || 
-                    (item.examId && item.examId === examFilter) ||
-                    (item.exam_id && item.exam_id === examFilter) ||
-                    (item.examID && item.examID === examFilter);
+                const matchExam = !examFilter || examId === examFilter;
 
                 return matchSearch && matchExam;
             });
@@ -671,8 +663,8 @@
                     const bId = b.studentId || b.student_id || b.studentID || '';
                     return aId.localeCompare(bId);
                 } else if(sortBy === 'examId') {
-                    const aExam = a.examId || a.exam_id || a.examID || '';
-                    const bExam = b.examId || b.exam_id || b.examID || '';
+                    const aExam = a.id || ''; // 문서 ID를 시험 ID로 사용
+                    const bExam = b.id || '';
                     return aExam.localeCompare(bExam);
                 }
                 return 0;
@@ -775,7 +767,9 @@
             filteredData.forEach(item => {
                 const studentId = item.studentId || item.student_id || item.studentID || item.userId || '-';
                 const studentName = item.name || item.studentName || item.student_name || item.userName || item.user_name || '-';
-                const examId = item.examId || item.exam_id || item.examID || '-';
+                
+                // 시험 ID는 문서 ID 사용
+                const examId = item.id || '-';
                 
                 // 제출시간
                 let timestamp = '-';
